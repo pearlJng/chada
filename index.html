@@ -40,15 +40,41 @@
 
 <header class="header" id="header">
   <a class="logo" href="#hero" aria-label="CHADA 처음으로">CHADA</a>
-  <nav class="nav" id="nav" aria-label="섹션 이동">
-    <a href="#morning-after">바뀌는 아침</a>
-    <a href="#route">새벽의 동네</a>
-    <a href="#process">도입 절차</a>
-    <a href="#faq">자주 묻는 질문</a>
-    <a class="nav-cta" href="#contact">도입 상담</a>
-  </nav>
-  <button class="menu-btn" id="menuBtn" aria-label="메뉴 열기" aria-expanded="false" aria-controls="nav"><span></span><span></span></button>
+  <div class="gnb" id="gnb">
+    <div class="gnb-row" id="gnbRow">
+      <a class="gnb-btn pri" href="#contact"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.5h10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7.5L4.5 14v-2.5H3a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/></svg>도입 상담</a>
+      <a class="gnb-btn sec" href="#process">도입 절차</a>
+      <button class="gnb-menu" id="menuBtn" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="gnbPanel"><i></i><i></i><i></i></button>
+    </div>
+    <div class="gnb-drop">
+      <nav class="gnb-panel" id="gnbPanel" aria-label="섹션 이동" inert>
+        <div class="gnb-card">
+          <p class="lb">서비스</p>
+          <a href="#morning-after">바뀌는 아침</a>
+          <a href="#route">새벽의 동네</a>
+          <a href="#cold">입고 기록</a>
+        </div>
+        <div class="gnb-card">
+          <p class="lb">시작하기</p>
+          <a href="#process">도입 절차</a>
+          <a href="#faq">자주 묻는 질문</a>
+          <a href="#contact">도입 상담</a>
+        </div>
+      </nav>
+    </div>
+  </div>
 </header>
+
+<nav class="dots" id="dots" aria-label="섹션 바로가기">
+  <button type="button" data-to="hero" aria-label="처음으로"><span class="tip">처음으로</span></button>
+  <button type="button" data-to="morning" aria-label="사장님의 아침"><span class="tip">사장님의 아침</span></button>
+  <button type="button" data-to="morning-after" aria-label="바뀌는 아침"><span class="tip">바뀌는 아침</span></button>
+  <button type="button" data-to="route" aria-label="새벽의 동네"><span class="tip">새벽의 동네</span></button>
+  <button type="button" data-to="cold" aria-label="입고 기록"><span class="tip">입고 기록</span></button>
+  <button type="button" data-to="process" aria-label="도입 절차"><span class="tip">도입 절차</span></button>
+  <button type="button" data-to="faq" aria-label="자주 묻는 질문"><span class="tip">자주 묻는 질문</span></button>
+  <button type="button" data-to="contact" aria-label="도입 상담"><span class="tip">도입 상담</span></button>
+</nav>
 
 <main>
 
@@ -175,58 +201,77 @@
 
 <!-- 4. 새벽 4시의 동네 -->
 <section class="route" id="route" aria-label="새벽 배송 경로">
-  <div class="route-intro wrap reveal">
-    <h2 class="title">동네가 자는 동안,<br>냉장고가 채워져요.</h2>
-    <p class="lead">냉장차 한 대가 새벽 3시 30분에 출발해, 해 뜨기 전 여덟 곳을 돌아요.</p>
-  </div>
-  <div class="route-scrolly" id="routeScrolly">
-    <div class="route-stage">
-      <div class="route-hud">
-        <div class="route-clock mono" id="routeClock" aria-hidden="true">03:30</div>
-        <p class="route-done" id="routeDone">동네 식당 <em>8곳</em>, 입고 완료</p>
+  <div class="route-stage">
+      <div class="route-intro reveal">
+        <h2 class="title">동네가 자는 동안,<br>냉장고가 채워져요.</h2>
+        <p class="lead">냉장차 한 대가 새벽 3시 30분에 출발해, 해 뜨기 전 여덟 곳을 돌아요.</p>
       </div>
       <div class="route-scene" id="routeScene">
+        <div class="route-bubble" id="routeDone"><p class="in"><i class="ck" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5.5 10.4l3 3 6-6.2"/></svg></i><span>동네 식당 <b>8곳</b>, 입고 완료</span></p></div>
         <div class="route-glow"></div>
         <div class="route-tilt" id="routeTilt">
-          <svg id="routeMap" viewBox="165 70 1355 830" role="img" aria-label="동네 식당을 차례로 도는 냉장차와 불이 켜지는 식당들">
+          <svg id="routeMap" viewBox="165 70 1355 700" preserveAspectRatio="xMidYMin meet" role="img" aria-label="동네 식당을 차례로 도는 냉장차와 불이 켜지는 식당들">
             <defs>
               <radialGradient id="soft"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-              <filter id="blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
               <mask id="litMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1671" height="941">
                 <rect width="1671" height="941" fill="#000"/>
                 <g id="routeLights"></g>
                 <rect id="routeFullLit" width="1671" height="941" fill="#fff" opacity="0"/>
               </mask>
+              <clipPath id="frontBuilding"><polygon points="897,447 987,397 1100,438 1102,630 1000,650 897,632"/></clipPath>
+              <clipPath id="popClip"><circle r="18"/></clipPath>
+              <g id="townBase">
+                <image href="asset/town-night.webp" width="1671" height="941"/>
+                <image href="asset/town-lit.webp" width="1671" height="941" mask="url(#litMask)"/>
+              </g>
             </defs>
-            <image href="asset/town-night.webp" width="1671" height="941"/>
-            <image href="asset/town-lit.webp" width="1671" height="941" mask="url(#litMask)"/>
-            <path id="routeGlowPath" fill="none" stroke="#5CE1E6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".35" filter="url(#blur)"/>
-            <path id="routePath" fill="none" stroke="#5CE1E6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
-            <g id="routeTruck"><g id="routeTruckFlip"><image id="routeTruckImg" href="asset/truck-front.webp" x="-130" y="-172" width="250" height="250"/></g></g>
+            <use href="#townBase"/>
+            <path id="routePath" fill="none" stroke="none"/>
+            <!-- two stacked layers so front/rear and left/right turns crossfade -->
+            <g id="routeTruck" opacity="0"><g id="routeTruckBody">
+              <g class="route-truck-layer"><image href="asset/truck-front.webp" x="-94" y="-124" width="180" height="180"/></g>
+              <g class="route-truck-layer" opacity="0"><image href="asset/truck-rear.webp" x="-94" y="-124" width="180" height="180"/></g>
+            </g></g>
+            <!-- the front building redrawn over the truck once it turns into the back alley -->
+            <use id="routeFront" href="#townBase" clip-path="url(#frontBuilding)" visibility="hidden"/>
+            <g id="routePops" aria-hidden="true"></g>
           </svg>
-          <div class="route-chips" id="routeChips" aria-hidden="true"></div>
         </div>
       </div>
-    </div>
   </div>
 </section>
 
 <!-- 5. 2.8℃의 기록 -->
 <section class="section" id="cold">
-  <div class="wrap two-col">
-    <div class="reveal">
-      <h2 class="title">끝까지 2.8℃,<br>기록으로 보여드릴게요.</h2>
-      <p class="lead">냉장차에 싣는 순간부터 사장님 냉장고에 넣는 순간까지, 온도는 5분마다 기록돼요. 기준 범위를 벗어나면 그 상자는 입고하지 않아요.</p>
+  <div class="wrap">
+    <div class="head reveal">
+      <h2 class="title">끝까지 2.8℃, 기록으로 보여드릴게요.</h2>
+      <p class="lead">냉장차에 싣는 순간부터 냉장고에 넣는 순간까지, 사장님 폰으로 그대로 보여드려요.</p>
     </div>
-    <div class="temp-card reveal" id="tempCard">
-      <div class="temp-head"><span>오늘 새벽 망원 김밥집 상자</span><b class="mono">2.8℃</b></div>
-      <svg class="temp-chart" viewBox="0 0 520 220" aria-label="03시 30분부터 04시 02분까지 온도가 2도에서 4도 사이에 머문 그래프">
-        <rect class="band" x="0" y="60" width="520" height="100"/>
-        <text class="axis mono" x="6" y="54">4℃</text><text class="axis mono" x="6" y="178">2℃</text>
-        <polyline class="line" id="tempLine" points="0,118 52,112 104,121 156,108 208,116 260,104 312,112 364,118 416,110 468,114 520,112"/>
-        <text class="axis mono" x="0" y="214">03:30 적재</text><text class="axis mono" x="420" y="214">04:02 입고</text>
-      </svg>
-      <div class="notify"><span class="dot"></span><div><b>04:02 입고 완료</b><span>채소 네 상자, 평균 2.9℃로 냉장고에 넣었어요.</span></div></div>
+    <div class="cl-fig" id="coldFig">
+      <p class="sr-only">망원 김밥집 상자의 입고 기록. 적재부터 입고까지 2.8에서 3.0도 사이로 유지됨</p>
+      <div class="cl-phone" id="coldPhone" aria-hidden="true">
+        <div class="scr">
+          <div class="ph-island"></div>
+          <div class="ph-status"><span class="mono">04:02</span><span class="ph-icons"><i class="sig"><b></b><b></b><b></b><b></b></i><i class="bat"></i></span></div>
+          <div class="cl-bar"><i class="back"></i><b>입고 기록</b></div>
+          <div class="cl-box"><b>망원 김밥집</b><span>오늘 새벽 · 채소 네 상자</span></div>
+          <div class="cl-sum" id="coldSum"><i class="ck"><svg viewBox="0 0 20 20"><path d="M5.5 10.4l3 3 6-6.2"/></svg></i><b>전 구간 2~4℃ 유지</b><span class="mono">2.8℃</span></div>
+          <div class="cl-tl" id="coldTl">
+            <div class="st"><i class="dot"></i><div class="ct"><p class="hd"><time class="mono">23:00</time> · <b>주문 마감</b></p><p class="ds">거래처 5곳 주문을 한 번에 묶었어요</p></div></div>
+            <div class="st"><i class="dot"></i><div class="ct"><p class="hd"><span class="chip mono">3.0℃</span><time class="mono">03:30</time> · <b>냉장차 적재</b></p></div></div>
+            <div class="st"><i class="dot"></i><div class="ct"><p class="hd"><span class="chip mono">2.9℃</span><time class="mono">03:52</time> · <b>동네 도착</b></p></div></div>
+            <div class="st"><i class="dot"></i><div class="ct"><p class="hd"><span class="chip mono">2.8℃</span><time class="mono">04:02</time> · <b>냉장고 입고</b></p><div class="photo"><img src="asset/hero-box.webp" alt=""></div></div></div>
+            <i class="line"><i class="fill"></i></i>
+          </div>
+        </div>
+      </div>
+      <!-- side notes (PC only), placed by script.js against the step / summary card they point at -->
+      <div class="cl-note l" id="coldNoteL"><b>5분마다 자동 기록</b><p>적재부터 입고까지 온도를 놓치지 않아요.</p></div>
+      <div class="cl-note r" id="coldNoteR"><b>기준을 벗어나면 입고하지 않아요</b><p>2~4℃ 밖으로 나간 상자는 다시 보내드려요.</p></div>
+      <i class="cl-link l" id="coldLinkL" aria-hidden="true"></i>
+      <i class="cl-link r" id="coldLinkR" aria-hidden="true"></i>
+      <i class="cl-fade" aria-hidden="true"></i>
     </div>
   </div>
 </section>
@@ -236,17 +281,26 @@
   <div class="wrap">
     <div class="head reveal">
       <h2 class="title">이미 이 동네 식당 120곳의<br>아침이 바뀌었어요.</h2>
-      <p class="lead">마포·성수 권역에서 1년 동안 쌓은 숫자예요.</p>
+      <p class="lead">먼저 시작한 사장님들이 직접 들려준 이야기예요.</p>
     </div>
-    <ul class="stats">
-      <li class="reveal"><b class="mono" data-count="120">0</b><span>함께하는 동네 식당</span></li>
-      <li class="reveal"><b class="mono">05:40</b><span>평균 입고 완료 시각</span></li>
-      <li class="reveal"><b class="mono" data-count="99.1" data-dec="1" data-suffix="%">0</b><span>오픈 전 입고율</span></li>
-      <li class="reveal"><b class="mono" data-count="2.8" data-dec="1" data-suffix="℃">0</b><span>평균 입고 온도</span></li>
-    </ul>
-    <div class="quotes">
-      <blockquote class="reveal"><p>"아침 주문 전화가 없어진 게 제일 커요. 그 시간에 육수를 하나 더 끓입니다."</p><cite>망원동 칼국숫집 사장님</cite></blockquote>
-      <blockquote class="reveal"><p>"여름에 고기 상자 걱정을 안 하게 됐어요. 온도 기록이 폰으로 오니까 마음이 편해요."</p><cite>성수동 국밥집 사장님</cite></blockquote>
+  </div>
+  <!-- two rows drifting in opposite directions; script.js appends aria-hidden copies for the seamless loop -->
+  <div class="rv" role="list" aria-label="사장님 후기">
+    <div class="rv-row">
+      <div class="rv-track">
+        <div class="rv-b" role="listitem" tabindex="0"><p>"아침 주문 전화가 없어진 게 제일 커요. 그 시간에 육수를 하나 더 끓입니다."</p><p class="by"><img src="asset/avatar-veg.webp" alt=""><span>망원동 칼국숫집 사장님</span><span class="dur mono">도입 8개월</span></p></div>
+        <div class="rv-b" role="listitem" tabindex="0"><p>"여름에 고기 상자 걱정을 안 하게 됐어요. 온도 기록이 폰으로 오니까 마음이 편해요."</p><p class="by"><img src="asset/avatar-meat.webp" alt=""><span>성수동 국밥집 사장님</span><span class="dur mono">도입 1년</span></p></div>
+        <div class="rv-b" role="listitem" tabindex="0"><p>"출근하면 냉장고가 이미 차 있어요. 처음엔 신기했는데 이젠 당연해졌어요."</p><p class="by"><img src="asset/avatar-tofu.webp" alt=""><span>연남동 백반집 사장님</span><span class="dur mono">도입 5개월</span></p></div>
+        <div class="rv-b" role="listitem" tabindex="0"><p>"반 상자만 필요한 날도 그냥 주문해요. 최소 주문량 맞추려고 고민할 일이 없어요."</p><p class="by"><img src="asset/avatar-fish.webp" alt=""><span>합정동 이자카야 사장님</span><span class="dur mono">도입 4개월</span></p></div>
+      </div>
+    </div>
+    <div class="rv-row rev">
+      <div class="rv-track">
+        <div class="rv-b" role="listitem" tabindex="0"><p>"거래처 다섯 곳 연락을 앱 하나로 끝내요. 밤 11시 전에 한 번만 보면 돼요."</p><p class="by"><img src="asset/avatar-rice.webp" alt=""><span>망원동 분식집 사장님</span><span class="dur mono">도입 7개월</span></p></div>
+        <div class="rv-b" role="listitem" tabindex="0"><p>"새벽 시장에 안 가니까 아침에 잠을 한 시간 더 자요. 이게 제일 좋아요."</p><p class="by"><img src="asset/avatar-veg.webp" alt=""><span>성수동 쌀국숫집 사장님</span><span class="dur mono">도입 10개월</span></p></div>
+        <div class="rv-b" role="listitem" tabindex="0"><p>"입고 사진이 오니까 직원한테 따로 확인할 필요가 없어졌어요."</p><p class="by"><img src="asset/avatar-tofu.webp" alt=""><span>서교동 브런치 식당 사장님</span><span class="dur mono">도입 3개월</span></p></div>
+        <div class="rv-b" role="listitem" tabindex="0"><p>"생선은 신선도가 생명인데, 문 앞에 방치될 일이 없으니 맛이 달라졌다는 말을 들어요."</p><p class="by"><img src="asset/avatar-fish.webp" alt=""><span>망원동 횟집 사장님</span><span class="dur mono">도입 6개월</span></p></div>
+      </div>
     </div>
   </div>
 </section>

@@ -123,25 +123,184 @@
 
   /* ===== Header & menu ===== */
   var header = document.getElementById('header');
-  var nav = document.getElementById('nav');
+  var gnb = document.getElementById('gnb'), gnbRow = document.getElementById('gnbRow');
+  var panel = document.getElementById('gnbPanel');
   var menuBtn = document.getElementById('menuBtn');
   var heroSec = document.getElementById('hero');
-  function onScrollHeader() {
+  var dots = document.getElementById('dots');
+  var narrowMq = window.matchMedia('(max-width: 900px)');
+  function onScrollHeader() { // dots dim over the hero
     var heroEnd = heroSec.offsetTop + heroSec.offsetHeight - header.offsetHeight;
-    header.classList.toggle('scrolled', window.scrollY > heroEnd);
+    dots.classList.toggle('in-hero', window.scrollY <= heroEnd);
   }
   window.addEventListener('scroll', onScrollHeader, { passive: true }); window.addEventListener('resize', onScrollHeader); onScrollHeader();
-  function setMenu(open) {
-    nav.classList.toggle('open', open);
+
+  // the container is as wide as its button row, open or not; on mobile an open menu spans the screen minus 16px gutters
+  var rowW = 0;
+  function sizeGnb() {
+    var open = gnb.classList.contains('open');
+    gnb.style.transition = 'none'; gnb.style.width = 'auto'; rowW = gnb.offsetWidth; gnb.style.width = ''; void gnb.offsetWidth; gnb.style.transition = '';
+    gnb.style.width = (open && narrowMq.matches ? window.innerWidth - 32 : rowW) + 'px';
+  }
+  function setMenu(open, refocus) {
+    if (open === gnb.classList.contains('open')) return;
+    gnb.classList.toggle('open', open);
+    panel.inert = !open;
     menuBtn.setAttribute('aria-expanded', open);
     menuBtn.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+    document.documentElement.classList.toggle('menu-lock', open && narrowMq.matches);
+    gnb.style.width = (open && narrowMq.matches ? window.innerWidth - 32 : rowW) + 'px';
+    if (open) panel.querySelector('a').focus({ preventScroll: true });
+    else if (refocus) menuBtn.focus({ preventScroll: true });
   }
-  menuBtn.addEventListener('click', function () { setMenu(!nav.classList.contains('open')); });
-  nav.addEventListener('click', function (e) { if (e.target.tagName === 'A') setMenu(false); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+  if (document.fonts) document.fonts.ready.then(sizeGnb);
+  sizeGnb(); window.addEventListener('resize', sizeGnb);
+  menuBtn.addEventListener('click', function () { setMenu(!gnb.classList.contains('open'), true); });
+  panel.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); }); // focus follows the jump to the section
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && gnb.classList.contains('open')) setMenu(false, true); });
+  document.addEventListener('click', function (e) { if (gnb.classList.contains('open') && !gnb.contains(e.target)) setMenu(false, true); });
+
+  /* ===== Section snap (PC mouse only): wheel / keys move one stop at a time. JS rather than CSS scroll-snap so the
+     scroll-driven scenes (hero door, morning messages) play out as the page glides through them ===== */
+  var snap = (function () {
+    var mq = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
+    var root = document.documentElement, track = document.getElementById('morningTrack');
+    var SECTIONS = ['morning-after', 'route', 'cold', 'proof', 'process', 'faq', 'contact'];
+    var BASE = .8, UP_SCENE = .9, LOCK = 400, TICK = 30, LONG = 1.2; // a section counts as long past 1.2 screens (less is just bottom padding)
+    var anim = null, lockUntil = 0, acc = 0, accDir = 0, lastWheel = 0;
+
+    function on() { return mq.matches && !reduce && !root.classList.contains('intro-on') && !gnb.classList.contains('open'); }
+    function top(el) { return el.getBoundingClientRect().top + window.scrollY; }
+    function easeCubic(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function easeSine(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
+
+    // stops, top to bottom. scene: going down from here plays a scroll-driven scene over `scene` seconds
+    function stops() {
+      var H = window.innerHeight, max = root.scrollHeight - H, ht = top(heroSec), tt = top(track);
+      var list = [
+        { id: 'hero', y: ht, scene: 2.6 },
+        { y: ht + heroSec.offsetHeight - H },
+        { id: 'morning', y: tt, scene: 3.2 },
+        { y: tt + track.offsetHeight - H }
+      ];
+      SECTIONS.forEach(function (id) { list.push({ id: id, y: top(document.getElementById(id)) }); });
+      list.push({ end: true, y: max });
+      return list.filter(function (p, i) { p.y = Math.min(Math.round(p.y), max); return p.end || p.y < max - 2; });
+    }
+
+    function go(y, dur, ease) {
+      var from = window.scrollY, t0 = performance.now(), last = from;
+      if (Math.abs(y - from) < 2) return;
+      cancelAnimationFrame(anim && anim.raf);
+      anim = { raf: 0 };
+      (function step(now) {
+        if (Math.abs(window.scrollY - last) > 3) { anim = null; return; } // the user grabbed the scrollbar
+        var k = Math.min(1, (now - t0) / (dur * 1000));
+        last = Math.round(from + (y - from) * ease(k));
+        window.scrollTo({ top: last, behavior: 'instant' });
+        if (k < 1) anim.raf = requestAnimationFrame(step);
+        else { anim = null; lockUntil = performance.now() + LOCK; }
+      })(t0);
+    }
+
+    // what one step in `dir` means from here: glide to a stop, or (inside a section taller than the screen) scroll natively up to `limit`
+    function plan(dir) {
+      var P = stops(), cur = window.scrollY, H = window.innerHeight, i, A, B;
+      if (dir > 0) {
+        for (i = P.length - 1; i >= 0 && P[i].y > cur + 2; i--);
+        if (i < 0 || i >= P.length - 1) return null;
+        A = P[i]; B = P[i + 1];
+        if (A.id && !A.scene && B.y - A.y > H * LONG) { // long sections only, not the gaps after a scene
+          var limit = B.end ? B.y : B.y - H;
+          if (cur < limit - 2) return { native: true, limit: limit };
+        }
+        if (A.scene) return { y: B.y, dur: Math.max(.6, A.scene * (B.y - cur) / (B.y - A.y)), ease: easeSine };
+        return { y: B.y, dur: BASE, ease: easeCubic };
+      }
+      for (i = 0; i < P.length && P[i].y < cur - 2; i++);
+      if (i === 0) return null;
+      A = P[i - 1]; B = P[i] || { y: cur };
+      if (A.id && !A.scene && B.y - A.y > H * LONG && cur > A.y + 2) {
+        if (!B.end && cur > B.y - H + 2) return { y: B.y - H, dur: BASE, ease: easeCubic }; // arrive at the long section's bottom
+        return { native: true, limit: A.y };
+      }
+      return { y: A.y, dur: A.scene ? UP_SCENE : BASE, ease: easeCubic };
+    }
+
+    function move(dir) {
+      var p = plan(dir);
+      if (p && !p.native) go(p.y, p.dur, p.ease);
+      return p;
+    }
+
+    window.addEventListener('wheel', function (e) {
+      if (!on() || e.ctrlKey) return;
+      var now = performance.now(), d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1);
+      if (!d) return;
+      if (anim) { e.preventDefault(); return; }
+      if (now < lockUntil) { e.preventDefault(); lockUntil = Math.max(lockUntil, now + 120); return; } // swallow trackpad momentum
+      var dir = d > 0 ? 1 : -1, p = plan(dir);
+      if (p && p.native) {
+        var next = window.scrollY + d;
+        if (dir > 0 ? next > p.limit : next < p.limit) { e.preventDefault(); window.scrollTo({ top: p.limit, behavior: 'instant' }); lockUntil = now + LOCK; }
+        acc = 0; return;
+      }
+      e.preventDefault();
+      if (dir !== accDir || now - lastWheel > 250) acc = 0;
+      accDir = dir; lastWheel = now; acc += d;
+      if (Math.abs(acc) >= TICK) { acc = 0; move(dir); }
+    }, { passive: false });
+
+    var KEYS = { PageDown: 1, PageUp: -1, ArrowDown: 1, ArrowUp: -1, ' ': 1 };
+    window.addEventListener('keydown', function (e) {
+      if (!on() || e.altKey || e.ctrlKey || e.metaKey || !(e.key in KEYS)) return;
+      if (e.target.closest && e.target.closest('input, textarea, select, button, summary, [contenteditable]')) return;
+      e.preventDefault();
+      if (anim) return;
+      var dir = e.key === ' ' && e.shiftKey ? -1 : KEYS[e.key], p = plan(dir);
+      if (p && p.native) { // a screen (page keys) or a line (arrows), never past the section edge
+        var step = (/Arrow/.test(e.key) ? 80 : window.innerHeight * .85) * dir, y = window.scrollY + step;
+        go(dir > 0 ? Math.min(y, p.limit) : Math.max(y, p.limit), .35, easeCubic);
+      } else move(dir);
+    });
+
+    function toId(id) {
+      var P = stops(), y = null, cur = window.scrollY;
+      P.forEach(function (p) { if (p.id === id) y = p.y; });
+      if (y === null) y = Math.min(top(document.getElementById(id)), root.scrollHeight - window.innerHeight);
+      go(y, Math.abs(y - cur) > window.innerHeight * 3 ? 1 : BASE, easeCubic);
+    }
+    // in-page links (logo, header buttons, menu) glide the same way
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href^="#"]');
+      if (!a || !on()) return;
+      var id = a.getAttribute('href').slice(1);
+      if (!document.getElementById(id)) return;
+      e.preventDefault(); toId(id);
+    });
+    return { on: on, toId: toId, heroEnd: function () { if (plan(1)) move(1); } };
+  })();
+
+  /* ===== Section dots: the section crossing the middle of the screen is current ===== */
+  (function sectionDots() {
+    var btns = [].slice.call(dots.querySelectorAll('button'));
+    function mark(id) { btns.forEach(function (b) { if (b.dataset.to === id) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }); }
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (snap.on()) snap.toId(b.dataset.to);
+        else document.getElementById(b.dataset.to).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+      });
+    });
+    mark('hero');
+    if (!('IntersectionObserver' in window)) return;
+    var dio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) mark(en.target.id); });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    btns.forEach(function (b) { dio.observe(document.getElementById(b.dataset.to)); });
+  })();
 
   /* ===== Reveal ===== */
-  var revealEls = document.querySelectorAll('.reveal, .steps li');
+  var revealEls = document.querySelectorAll('.reveal, .steps li, .cl-fig');
   if (reduce || !('IntersectionObserver' in window)) {
     revealEls.forEach(function (el) { el.classList.add('in'); });
   } else {
@@ -151,25 +310,50 @@
     revealEls.forEach(function (el) { io.observe(el); });
   }
 
-  /* ===== Count up ===== */
-  var counters = document.querySelectorAll('[data-count]');
-  function runCount(el) {
-    var to = parseFloat(el.dataset.count), dec = parseInt(el.dataset.dec || '0', 10), suf = el.dataset.suffix || '';
-    if (reduce) { el.textContent = to.toFixed(dec) + suf; return; }
-    var t0 = null;
-    function step(t) {
-      if (!t0) t0 = t; var k = clamp((t - t0) / 1400);
-      el.textContent = (to * ease(k)).toFixed(dec) + suf;
-      if (k < 1) requestAnimationFrame(step);
+  /* ===== 5. Cold record: line runs from the first dot to the last; each step lands when the fill reaches its dot ===== */
+  (function coldRecord() {
+    var fig = document.getElementById('coldFig'), tl = document.getElementById('coldTl');
+    var steps = tl.querySelectorAll('.st'), sum = document.getElementById('coldSum');
+    var notes = { l: document.getElementById('coldNoteL'), r: document.getElementById('coldNoteR') };
+    var links = { l: document.getElementById('coldLinkL'), r: document.getElementById('coldLinkR') };
+    var FILL = 0.5, RUN = 1.8, DOT = 21; // fill starts after the phone rises (s) and takes RUN s; dot centre below a step's top
+    function box(el) { // layout box relative to the stage, ignoring the entrance transform
+      var x = 0, y = 0, w = el.offsetWidth, h = el.offsetHeight;
+      while (el && el !== fig) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; if (el && el !== fig) { x += el.clientLeft; y += el.clientTop; } }
+      return { x: x, y: y, w: w, h: h };
     }
-    requestAnimationFrame(step);
+    function measure() {
+      var ys = [].map.call(steps, function (st) { return st.offsetTop + DOT; });
+      var top = ys[0], h = ys[ys.length - 1] - top;
+      tl.style.setProperty('--top', top + 'px'); tl.style.setProperty('--h', h + 'px');
+      steps.forEach(function (st, i) { st.style.setProperty('--at', (FILL + RUN * (ys[i] - top) / h).toFixed(2)); });
+      fig.style.setProperty('--end', (FILL + RUN) + 's');
+      fig.style.setProperty('--at2', steps[1].style.getPropertyValue('--at'));
+      if (getComputedStyle(notes.l).display === 'none') return;
+      // left note -> the 03:30 step card's left edge; right note -> the summary card's right edge
+      var card = box(steps[1].querySelector('.ct')), s = box(sum);
+      var yl = card.y + card.h / 2, yr = s.y + s.h / 2;
+      notes.l.style.setProperty('--y', yl + 'px'); notes.r.style.setProperty('--y', yr + 'px');
+      var nl = notes.l.offsetLeft + notes.l.offsetWidth, nr = notes.r.offsetLeft;
+      links.l.style.cssText = '--x1:' + nl + 'px;--y:' + yl + 'px;--w:' + (card.x - nl) + 'px';
+      links.r.style.cssText = '--x1:' + (s.x + s.w) + 'px;--y:' + yr + 'px;--w:' + (nr - s.x - s.w) + 'px';
+    }
+    measure(); window.addEventListener('resize', measure);
+    if (document.fonts) document.fonts.ready.then(measure);
+  })();
+
+  /* ===== 6. Reviews: two copies after the originals make the drift seamless; copies are hidden from screen readers and focus ===== */
+  if (!reduce) {
+    document.querySelectorAll('#proof .rv-track').forEach(function (tr) {
+      var items = [].slice.call(tr.children);
+      for (var n = 0; n < 2; n++) items.forEach(function (it) {
+        var c = it.cloneNode(true);
+        c.setAttribute('aria-hidden', 'true'); c.removeAttribute('role'); c.removeAttribute('tabindex');
+        tr.appendChild(c);
+      });
+      tr.classList.add('loop');
+    });
   }
-  if ('IntersectionObserver' in window) {
-    var cio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) { runCount(en.target); cio.unobserve(en.target); } });
-    }, { threshold: .6 });
-    counters.forEach(function (el) { cio.observe(el); });
-  } else counters.forEach(runCount);
 
   /* ===== Contact form (no server yet) ===== */
   var form = document.getElementById('contactForm'), formMsg = document.getElementById('formMsg');
@@ -243,6 +427,7 @@
     }
     door.addEventListener('click', function () {
       stage.classList.remove('peek');
+      if (snap.on()) { snap.heroEnd(); return; } // glide to the open door like a wheel step
       var r = heroEl.getBoundingClientRect(), span = r.height - window.innerHeight;
       window.scrollTo({ top: window.scrollY + r.top + span * Math.max(0.8, progressOf(heroEl)), behavior: reduce ? 'auto' : 'smooth' });
     });
@@ -439,104 +624,194 @@
     });
   })();
 
-  /* ===== 4. Route: truck drives the neighborhood, shops light up ===== */
+  /* ===== 4. Route: plays once when in view. Truck drives the neighborhood, shops light up ===== */
   (function route() {
     var NS = 'http://www.w3.org/2000/svg';
-    // diorama coordinates (1671 x 941)
-    var ROUTE = [[290,505],[540,640],[790,725],[1000,660],[1200,598],[1330,558],[1240,534],[1160,488],[1068,442],[970,390],[890,344],[832,316]];
+    // diorama coordinates (1671 x 941); starts at the town's left corner
+    var ROUTE = [[230,470],[290,505],[540,640],[790,725],[1000,660],[1200,598],[1300,560],[1225,522],[1165,490],[1120,440],[1060,400],[987,355],[900,318],[820,290]];
+    var BEHIND = 7; // from ROUTE[7] on the truck is in the back alley, behind the front building
     var SHOPS = [{ p: [459,528] }, { p: [643,597] }, { p: [832,516] }, { p: [1033,574] }, { p: [1337,482] }, { p: [1223,471] }, { p: [1096,379] }, { p: [913,304] }];
-    var TIMES = ['04:02','04:14','04:21','04:38','04:52','05:03','05:19','05:34'];
+    var GOODS = [['veg','tofu','rice'],['meat','veg','fish'],['fish','rice','tofu'],['veg','meat','rice'],['tofu','fish','veg'],['rice','meat','tofu'],['meat','fish','veg'],['veg','rice','fish']];
     var IMG = { front: 'asset/truck-front.webp', rear: 'asset/truck-rear.webp' };
+    var DRIVE = 7, DAWN = 1;                  // seconds: the drive, then dawn + every window lit
+    var ACCEL = .6, BRAKE = .8;               // start / stop ramps (s)
+    var STEP = 2, LOOK = 40, SLOW = .55;      // corner look-ahead (units) and slowest speed factor
+    var HOLD = 12, FADE = .16;                // a new facing must last 12 units; crossfade 160ms
+    var RISE = .3, FALL = .5, STAGGER = .08, GAP = .35, ICON = 36;
 
-    var section = document.getElementById('route'), scrolly = document.getElementById('routeScrolly');
-    var path = document.getElementById('routePath'), glowPath = document.getElementById('routeGlowPath');
-    var d = 'M' + ROUTE.map(function (p) { return p.join(' '); }).join(' L');
-    path.setAttribute('d', d); glowPath.setAttribute('d', d);
+    var section = document.getElementById('route');
+    var path = document.getElementById('routePath');
+
+    // Catmull-Rom (tension .5) through the route corners, as cubic beziers
+    var d = 'M' + ROUTE[0].join(' ');
+    for (var i = 0; i < ROUTE.length - 1; i++) {
+      var p0 = ROUTE[Math.max(0, i - 1)], p1 = ROUTE[i], p2 = ROUTE[i + 1], p3 = ROUTE[Math.min(ROUTE.length - 1, i + 2)];
+      d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ' ' + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + ' ' +
+        (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ' ' + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + ' ' + p2[0] + ' ' + p2[1];
+    }
+    path.setAttribute('d', d);
     var total = path.getTotalLength();
-    [path, glowPath].forEach(function (r) { r.style.strokeDasharray = total; r.style.strokeDashoffset = total; });
 
-    var samples = [];
-    for (var i = 0; i <= 600; i++) { var L = total * i / 600, q = path.getPointAtLength(L); samples.push([L, q.x, q.y]); }
-    SHOPS.forEach(function (s) {
+    // samples every STEP units: position, heading, facing
+    var S = [];
+    for (var L = 0; L <= total; L += STEP) { var q = path.getPointAtLength(L); S.push({ s: L, x: q.x, y: q.y }); }
+    S.forEach(function (o, k) {
+      var a = S[Math.max(0, k - 1)], b = S[Math.min(S.length - 1, k + 1)], dx = b.x - a.x, dy = b.y - a.y;
+      var down = dy > 0;                       // front art faces down-left, rear art faces up-right
+      o.th = Math.atan2(dy, dx); o.img = down ? 'front' : 'rear'; o.f = (down ? dx > 0 : dx < 0) ? -1 : 1;
+    });
+    function nearest(pt) {
       var best = 1e9, bl = 0;
-      samples.forEach(function (sm) { var dd = Math.hypot(sm[1] - s.p[0], sm[2] - s.p[1]); if (dd < best) { best = dd; bl = sm[0]; } });
-      s.len = bl; s.r = 0;
-    });
-    SHOPS.sort(function (a, b) { return a.len - b.len; });
+      S.forEach(function (o) { var dd = Math.hypot(o.x - pt[0], o.y - pt[1]); if (dd < best) { best = dd; bl = o.s; } });
+      return bl;
+    }
+    var behindLen = nearest(ROUTE[BEHIND]);
 
-    // each shop gets a light in the mask and an entry-time chip that pops once when its light comes on
-    var lights = document.getElementById('routeLights'), chips = document.getElementById('routeChips'), svg = document.getElementById('routeMap');
-    SHOPS.forEach(function (s, idx) {
+    // speed: slows toward a corner in proportion to how hard it turns within the next LOOK units, then smoothed
+    var n = S.length, look = LOOK / STEP, raw = [], speed = [];
+    for (i = 0; i < n; i++) {
+      var turn = 0;
+      for (var j = i + 1; j <= Math.min(n - 1, i + look); j++) {
+        var dt = Math.abs(Math.atan2(Math.sin(S[j].th - S[i].th), Math.cos(S[j].th - S[i].th)));
+        if (dt > turn) turn = dt;
+      }
+      raw.push(1 - (1 - SLOW) * clamp(turn / (Math.PI / 2)));
+    }
+    for (i = 0; i < n; i++) {
+      var sum = 0, cnt = 0;
+      for (j = Math.max(0, i - 8); j <= Math.min(n - 1, i + 8); j++) { sum += raw[j]; cnt++; }
+      speed.push(sum / cnt);
+    }
+    // path time at unit speed (tau), then warp real time so the truck pulls away and pulls in gently
+    var tau = [0];
+    for (i = 1; i < n; i++) tau.push(tau[i - 1] + STEP / ((speed[i - 1] + speed[i]) / 2));
+    function ss(x) { x = clamp(x); return x * x * (3 - 2 * x); }
+    var HZ = 240, warp = [0];
+    for (i = 1; i <= DRIVE * HZ; i++) {
+      var t = (i - .5) / HZ;
+      warp.push(warp[i - 1] + Math.min(ss(t / ACCEL), ss((DRIVE - t) / BRAKE)));
+    }
+    var sAt = [], k2 = 0, tauEnd = tau[n - 1], wEnd = warp[warp.length - 1];
+    for (i = 0; i < warp.length; i++) {             // real time -> distance
+      var want = warp[i] / wEnd * tauEnd;
+      while (k2 < n - 2 && tau[k2 + 1] < want) k2++;
+      var u = clamp((want - tau[k2]) / (tau[k2 + 1] - tau[k2]));
+      sAt.push(S[k2].s + u * (S[k2 + 1].s - S[k2].s));
+    }
+    function distAt(t) {
+      if (t >= DRIVE) return total;
+      var x = Math.max(0, t) * HZ, i0 = Math.floor(x);
+      return sAt[i0] + (sAt[i0 + 1] - sAt[i0]) * (x - i0);
+    }
+    function timeAt(len) { // first moment the truck reaches len
+      for (var i = 0; i < sAt.length; i++) if (sAt[i] >= len) return i / HZ;
+      return DRIVE;
+    }
+
+    // facing changes, only once the new facing holds for HOLD units (no flicker at the apex of a turn)
+    var turns = [{ t: 0, img: S[0].img, f: S[0].f }], face = turns[0];
+    for (i = 1; i < n; i++) {
+      if (S[i].img === face.img && S[i].f === face.f) continue;
+      var holds = true;
+      for (j = i; j <= Math.min(n - 1, i + HOLD / STEP); j++) if (S[j].img !== S[i].img || S[j].f !== S[i].f) { holds = false; break; }
+      if (holds) { face = { t: timeAt(S[i].s), img: S[i].img, f: S[i].f }; turns.push(face); }
+    }
+
+    // shops: when each light comes on; pops are queued so two shops never start together (GAP apart)
+    var lights = document.getElementById('routeLights'), popLayer = document.getElementById('routePops');
+    SHOPS.forEach(function (sh, idx) { sh.goods = GOODS[idx]; sh.on = timeAt(nearest(sh.p) - 10); });
+    SHOPS.sort(function (a, b) { return a.on - b.on; });
+    var GROUP = STAGGER * 2 + RISE + FALL, free = 0, popEnd = 0;
+    SHOPS.forEach(function (sh, idx) {
       var c = document.createElementNS(NS, 'circle');
-      c.setAttribute('cx', s.p[0]); c.setAttribute('cy', s.p[1]); c.setAttribute('r', 0); c.setAttribute('fill', 'url(#soft)');
-      lights.appendChild(c); s.el = c; s.on = false;
-      var chip = document.createElement('span'); chip.className = 'route-chip mono'; chip.textContent = TIMES[idx];
-      chip.addEventListener('animationend', function () { chip.classList.remove('show'); });
-      chips.appendChild(chip); s.chip = chip;
+      c.setAttribute('cx', sh.p[0]); c.setAttribute('cy', sh.p[1]); c.setAttribute('r', 0); c.setAttribute('fill', 'url(#soft)');
+      lights.appendChild(c); sh.el = c;
+      sh.pop = Math.max(sh.on, free); free = sh.pop + GAP; popEnd = sh.pop + GROUP;
+      sh.icons = sh.goods.map(function (name, k) { return { name: name, dx: (k - 1) * 40, h: 50 + (idx * 7 + k * 11) % 21 }; });
     });
-    function placeChips() { // svg user units -> px inside the tilt box (viewBox is letterboxed, xMidYMid meet)
-      var vb = svg.viewBox.baseVal, sr = svg.getBoundingClientRect(), cr = chips.getBoundingClientRect();
-      var w = sr.width, h = sr.height, k = Math.min(w / vb.width, h / vb.height);
-      var ox = (w - vb.width * k) / 2 + sr.left - cr.left, oy = (h - vb.height * k) / 2 + sr.top - cr.top;
-      SHOPS.forEach(function (s) {
-        s.chip.style.left = (ox + (s.p[0] - vb.x) * k) + 'px';
-        s.chip.style.top = (oy + (s.p[1] - 70 - vb.y) * k) + 'px';
+
+    function drawPops(e) {
+      SHOPS.forEach(function (sh) {
+        var live = e >= sh.pop && e < sh.pop + GROUP;
+        if (!live) { if (sh.g) { sh.g.remove(); sh.g = null; } return; }
+        if (!sh.g) {
+          sh.g = document.createElementNS(NS, 'g'); popLayer.appendChild(sh.g);
+          sh.icons.forEach(function (o) {
+            var g = document.createElementNS(NS, 'g'), im = document.createElementNS(NS, 'image');
+            im.setAttribute('href', 'asset/avatar-' + o.name + '.webp');
+            im.setAttribute('x', -ICON / 2); im.setAttribute('y', -ICON / 2); im.setAttribute('width', ICON); im.setAttribute('height', ICON);
+            im.setAttribute('clip-path', 'url(#popClip)');
+            g.appendChild(im); sh.g.appendChild(g); o.el = g;
+          });
+        }
+        var x0 = sh.p[0], y0 = sh.p[1] - 40; // from the roof, clear of the truck
+        sh.icons.forEach(function (o, k) {
+          var t = e - sh.pop - k * STAGGER, x = 0, y = 0, sc = 0, op = 0;
+          if (t >= 0 && t < RISE) { var r = cubicBezier(.34, 1.56, .64, 1, t / RISE); x = o.dx * r; y = -o.h * r; sc = r; op = 1; }
+          else if (t >= RISE && t < RISE + FALL) { var f = cubicBezier(.42, 0, 1, 1, (t - RISE) / FALL); x = o.dx; y = -o.h * (1 - f); sc = 1 - .4 * f; op = 1 - f; }
+          o.el.setAttribute('transform', 'translate(' + (x0 + x).toFixed(1) + ',' + (y0 + y).toFixed(1) + ') scale(' + Math.max(0, sc).toFixed(3) + ')');
+          o.el.setAttribute('opacity', op.toFixed(3));
+        });
       });
     }
-    window.addEventListener('resize', placeChips); placeChips(); // measured untilted (only on load/resize)
-    var done = document.getElementById('routeDone');
 
-    var truck = document.getElementById('routeTruck'), flip = document.getElementById('routeTruckFlip'), truckImg = document.getElementById('routeTruckImg');
-    var fullLit = document.getElementById('routeFullLit'), clock = document.getElementById('routeClock');
-    var cur = 0, full = 0, lastImg = 'front', lastFlip = 1;
+    var done = document.getElementById('routeDone');
+    var truck = document.getElementById('routeTruck'), body = document.getElementById('routeTruckBody');
+    var layers = [].map.call(body.children, function (g) { return { g: g, im: g.firstElementChild, key: '' }; });
+    var fullLit = document.getElementById('routeFullLit'), front = document.getElementById('routeFront');
+    var lastBehind = null;
 
     function mix(a, b, t) {
       var pa = [1, 3, 5].map(function (k) { return parseInt(a.substr(k, 2), 16); });
       var pb = [1, 3, 5].map(function (k) { return parseInt(b.substr(k, 2), 16); });
       return 'rgb(' + pa.map(function (v, i) { return Math.round(v + (pb[i] - v) * t); }).join(',') + ')';
     }
-    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function setLayer(ly, turn, op) {
+      var key = turn.img + turn.f;
+      if (ly.key !== key) { ly.im.setAttribute('href', IMG[turn.img]); ly.g.setAttribute('transform', 'scale(' + turn.f + ',1)'); ly.key = key; }
+      ly.g.setAttribute('opacity', op.toFixed(3));
+    }
 
-    function frame() {
-      var p = reduce ? 1 : progressOf(scrolly);
-      var target = Math.min(1, p / 0.86) * total;
-      cur = reduce ? target : cur + (target - cur) * 0.14;
-      if (Math.abs(target - cur) < 0.3) cur = target;
-
-      var off = total - cur; path.style.strokeDashoffset = off; glowPath.style.strokeDashoffset = off;
-
-      var pt = path.getPointAtLength(cur), a = path.getPointAtLength(Math.max(0, cur - 6)), b = path.getPointAtLength(Math.min(total, cur + 6));
-      var dx = b.x - a.x, dy = b.y - a.y;
-      if (Math.hypot(dx, dy) > 0.5) {
-        var down = dy > 0, img = down ? 'front' : 'rear';   // front art faces down-left, rear art faces up-right
-        var f = (down ? dx > 0 : dx < 0) ? -1 : 1;
-        if (img !== lastImg) { truckImg.setAttribute('href', IMG[img]); lastImg = img; }
-        if (f !== lastFlip) { flip.setAttribute('transform', 'scale(' + f + ',1)'); lastFlip = f; }
-      }
+    // everything on screen is a function of e, the seconds played so far
+    function render(e) {
+      var cur = distAt(e), pt = path.getPointAtLength(cur);
+      var j = 0; while (j + 1 < turns.length && turns[j + 1].t <= e) j++;
+      var x = j ? clamp((e - turns[j].t) / FADE) : 1;
+      setLayer(layers[j % 2], turns[j], x);
+      setLayer(layers[(j + 1) % 2], j ? turns[j - 1] : turns[j], j ? 1 - x : 0);
+      var sx = .92 + .08 * ease(x); // a slight squeeze as it turns
       truck.setAttribute('transform', 'translate(' + pt.x.toFixed(1) + ',' + pt.y.toFixed(1) + ')');
-      truck.setAttribute('opacity', clamp((total - cur) / (total * 0.07)).toFixed(3));
+      body.setAttribute('transform', x < 1 ? 'scale(' + sx.toFixed(3) + ',1)' : '');
+      truck.setAttribute('opacity', Math.min(clamp(cur / (total * 0.04)), clamp((total - cur) / (total * 0.07))).toFixed(3)); // fade in at the corner, out at the end
+      var behind = cur >= behindLen - 1;
+      if (behind !== lastBehind) { front.setAttribute('visibility', behind ? 'visible' : 'hidden'); lastBehind = behind; }
 
-      SHOPS.forEach(function (s) {
-        var on = cur >= s.len - 10;
-        if (on && !s.on && !reduce) { s.chip.classList.remove('show'); void s.chip.offsetWidth; s.chip.classList.add('show'); }
-        if (!on && s.on) s.chip.classList.remove('show'); // scrolled back: light off, no chip
-        s.on = on;
-        var tr = on ? 120 : 0; s.r = reduce ? tr : s.r + (tr - s.r) * 0.1; if (Math.abs(tr - s.r) < .5) s.r = tr;
-        s.el.setAttribute('r', s.r.toFixed(1));
-      });
-      var tf = Math.min(1, Math.max(0, (p - 0.88) / 0.12) * 1.4);
-      full = reduce ? tf : full + (tf - full) * 0.1; fullLit.setAttribute('opacity', full.toFixed(3));
-      var dawn = clamp((p - 0.8) / 0.2);
+      SHOPS.forEach(function (sh) { sh.el.setAttribute('r', (120 * ease(clamp((e - sh.on) / .6))).toFixed(1)); });
+      var dawn = clamp((e - DRIVE) / DAWN);
+      fullLit.setAttribute('opacity', ease(dawn).toFixed(3));
       section.style.setProperty('--sky', mix('#07111F', '#20406A', dawn));
       section.style.setProperty('--dawnp', dawn);
-
-      done.classList.toggle('on', p > 0.88);
-
-      var mins = 210 + Math.round(130 * cur / total);
-      clock.textContent = pad(Math.floor(mins / 60)) + ':' + pad(mins % 60);
-      requestAnimationFrame(frame);
+      if (!reduce) drawPops(e);
+      done.classList.toggle('on', e >= DRIVE + DAWN);
     }
-    requestAnimationFrame(frame);
+
+    var END = Math.max(DRIVE + DAWN, popEnd), played = 0, last = 0, running = false, inView = false;
+    function tick(now) {
+      played += Math.min(.05, (now - last) / 1000); last = now; // cap the step so a background tab doesn't jump
+      render(Math.min(played, END));
+      if (played < END && inView) requestAnimationFrame(tick); else running = false;
+    }
+    function play() { if (running || played >= END) return; running = true; last = performance.now(); requestAnimationFrame(tick); }
+
+    if (reduce || !('IntersectionObserver' in window)) render(END);
+    else {
+      render(0);
+      // starts once half the section is on screen; pauses when it leaves, resumes where it left off
+      new IntersectionObserver(function (entries) {
+        inView = entries[0].intersectionRatio >= .5 || (inView && entries[0].isIntersecting);
+        if (inView) play();
+      }, { threshold: [0, .5] }).observe(section);
+    }
 
     var tilt = document.getElementById('routeTilt'), scene = document.getElementById('routeScene');
     if (!reduce && finePointer) {
