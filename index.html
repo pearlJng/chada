@@ -10,13 +10,38 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>
+  // Decide before first paint whether the intro plays, so a skipped intro never flashes.
+  (function () {
+    var seen = false;
+    try { seen = sessionStorage.getItem('chada-intro-seen') === '1'; } catch (e) {}
+    if (seen || location.hash || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('intro-on');
+  })();
+</script>
 </head>
 <body>
+
+<!-- 0. INTRO: 새벽, 트럭이 박스를 두고 간다 (옆에서 본 장면) -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro-wrap">
+  <div class="intro-stage" id="introScene">
+    <i class="i-road"></i>
+    <img class="i-shop" id="iShop" src="asset/shop-front.webp" alt="">
+    <img class="i-box" id="iBox" src="asset/box-side.webp" alt="">
+    <div class="i-truck" id="iTruck">
+      <img class="i-wheel" src="asset/truck-wheel.webp" alt="" style="left:21.5%;top:100.7%">
+      <img class="i-wheel" src="asset/truck-wheel.webp" alt="" style="left:79.3%;top:100%">
+      <img class="i-body" id="iBody" src="asset/truck-side.webp" alt="">
+    </div>
+  </div>
+  </div>
+</div>
 
 <header class="header" id="header">
   <a class="logo" href="#hero" aria-label="CHADA 처음으로">CHADA</a>
   <nav class="nav" id="nav" aria-label="섹션 이동">
-    <a href="#truck">트럭 한 대</a>
+    <a href="#morning-after">바뀌는 아침</a>
     <a href="#route">새벽의 동네</a>
     <a href="#process">도입 절차</a>
     <a href="#faq">자주 묻는 질문</a>
@@ -31,57 +56,119 @@
 <section class="hero" id="hero" aria-label="문을 열면 도착해 있는 식자재">
   <div class="hero-stage" id="heroStage">
     <div class="hero-world" id="heroWorld">
-      <div class="h-layer h-outside"><img src="asset/hero-outside.webp" alt=""><div class="h-dawn"></div></div>
+      <div class="h-layer h-outside"><img src="asset/hero-outside.webp" alt=""><div class="h-dawn"></div><div class="h-shade"></div></div>
       <div class="h-box-shadow"></div>
       <img class="h-layer h-box" id="heroBox" src="asset/hero-box.webp" alt="문 앞에 도착한 냉장 박스">
       <img class="h-layer h-room" src="asset/hero-room.webp" alt="">
       <div class="h-room-dim"></div>
       <div class="h-spill"><div class="halo"></div><div class="floor"></div></div>
       <div class="h-leak"></div>
-      <div class="h-door-wrap"><button class="h-door" id="heroDoor" aria-label="문 열기"><img src="asset/hero-door.webp" alt=""></button></div>
+      <div class="h-seep" aria-hidden="true"><i class="floor-gap"></i><i class="rim"></i></div>
+      <div class="h-door-wrap"><button class="h-door" id="heroDoor" aria-label="문 열기"><img src="asset/hero-door.webp" alt=""><i class="tint"></i><i class="glass"></i></button></div>
       <div class="h-world-fade"></div>
-      <div class="h-tag mono" id="heroTag">05:38 입고 완료 <b>2.8℃</b></div>
     </div>
 
-    <div class="h-pre" id="heroPre"><span class="mono">오전 5:52, 오픈 준비 전</span><p>문 너머가 벌써 조금 밝아요.</p></div>
     <div class="h-copy" id="heroCopy">
       <span class="chip">새 권역 첫 파트너 식당 모집</span>
       <h1>사장님은<br>아침에 문만 여세요.</h1>
-      <p class="h-sub">동네가 자는 동안 CHADA 냉장차가 식자재를 문 앞까지, 2.8℃ 그대로 가져다 둬요.</p>
+      <p class="h-sub">동네가 자는 동안 CHADA 냉장차가 식자재를 문 앞까지, <br> 2.8℃ 그대로 가져다 둬요.</p>
     </div>
-    <div class="h-hint" id="heroHint">스크롤하면 문 쪽으로 걸어가요</div>
   </div>
 </section>
 
 <!-- 2. 사장님의 아침 -->
-<section class="section" id="morning">
-  <div class="wrap two-col">
-    <div class="reveal">
-      <h2 class="title">사장님의 아침,<br>왜 이렇게 바쁠까요?</h2>
-      <p class="lead">거래처는 다섯 곳, 배송 시간은 제각각. 오픈 준비보다 연락 확인이 먼저인 아침이에요.</p>
+<section class="morning" id="morning" aria-label="어제까지의 바쁜 아침">
+  <div class="m-track" id="morningTrack">
+    <div class="m-stage">
+      <div class="m-copy">
+        <div class="bell" id="mBell" aria-hidden="true">
+          <div class="bell-swing"><div class="bell-ring"><img src="asset/icon-bell.webp" alt="" width="88" height="88"></div></div>
+          <span class="bell-lines"></span>
+        </div>
+        <h2 class="title">사장님의 아침,<br>왜 이렇게 바쁠까요?</h2>
+        <p class="lead">거래처는 다섯 곳, 배송 시간은 제각각.<br> 오픈 준비보다 연락 확인이 먼저인 아침이에요.</p>
+      </div>
+
+      <div class="m-device">
+      <div class="phone" id="mPhone">
+        <div class="ph-screen">
+          <div class="ph-island" aria-hidden="true"></div>
+          <div class="ph-status" aria-hidden="true">
+            <span class="mono" id="mClock">07:00</span>
+            <span class="ph-icons"><i class="sig"><b></b><b></b><b></b><b></b></i><i class="bat"></i></span>
+          </div>
+          <div class="ph-head">
+            <i class="back" aria-hidden="true"></i>
+            <strong>거래처 연락</strong><span>4</span>
+          </div>
+          <ol class="ph-chat" id="mChat" aria-label="어느 식당 사장님의 아침 메시지">
+            <li class="cm in" data-t="07:12"><img class="av" src="asset/avatar-veg.webp" alt="" width="36" height="36"><div class="cm-body"><span class="who">채소상회</span><div class="row"><p class="bub">사장님, 오늘 배송은 11시쯤 될 것 같아요.</p><time class="mono">07:12</time></div></div></li>
+            <li class="cm me" data-t="07:13"><div class="row"><span class="meta"><span>읽음</span><time class="mono">07:13</time></span><p class="bub">11시면 점심 준비가 안 되는데요…</p></div></li>
+            <li class="cm in" data-t="07:20"><img class="av" src="asset/avatar-meat.webp" alt="" width="36" height="36"><div class="cm-body"><span class="who">동네 정육점</span><div class="row"><p class="bub">이번 주부터 최소 주문량 맞춰 주셔야 출고돼요.</p><time class="mono">07:20</time></div></div></li>
+            <li class="cm me" data-t="07:21"><div class="row"><span class="meta"><span>읽음</span><time class="mono">07:21</time></span><p class="bub">필요한 건 반 상자인데요ㅠ</p></div></li>
+            <li class="cm in" data-t="07:41"><img class="av" src="asset/avatar-fish.webp" alt="" width="36" height="36"><div class="cm-body"><span class="who">새벽 수산</span><div class="row"><p class="bub">문 앞에 두고 갑니다.</p></div><div class="row"><p class="bub photo"><img src="asset/hero-box.webp" alt="가게 문 앞에 놓인 식자재 상자 사진" width="160" height="160" loading="lazy"></p><time class="mono">07:41</time></div></div></li>
+            <li class="cm me" data-t="08:55"><div class="row"><span class="meta"><span>읽음</span><time class="mono">08:55</time></span><p class="bub">고기 상자가 한 시간째 밖에 있었네요… 내일은 그냥 새벽 시장 갈게요.</p></div></li>
+          </ol>
+          <div class="ph-input" aria-hidden="true"><span>메시지 입력</span></div>
+        </div>
+      </div>
+      </div>
     </div>
-    <ul class="chat" aria-label="어느 식당 사장님의 아침 메시지">
-      <li class="msg reveal"><span class="who">채소 거래처</span>사장님, 오늘 배송은 11시쯤 될 것 같아요.<time class="mono">07:12</time></li>
-      <li class="msg reveal"><span class="who">정육 거래처</span>최소 주문량 맞춰 주셔야 출고돼요.<time class="mono">07:20</time></li>
-      <li class="msg reveal"><span class="who">수산 거래처</span>문 앞에 두고 갑니다.<time class="mono">07:41</time></li>
-      <li class="msg me reveal">고기 상자가 한 시간째 밖에 있었네… 내일은 그냥 새벽 시장 가야겠다.<time class="mono">08:55</time></li>
-    </ul>
   </div>
 </section>
 
-<!-- 3. 트럭 한 대 -->
-<section class="section alt" id="truck">
+<!-- 3. 바뀌는 아침 -->
+<section class="section alt" id="morning-after">
   <div class="wrap">
     <div class="head reveal">
-      <h2 class="title">다섯 대가 오던 길,<br>이제 한 대가 돕니다.</h2>
-      <p class="lead">동네 식당들의 식자재를 냉장차 한 대가 새벽에 모아서 돌아요. 사장님은 주문만 하시면 돼요.</p>
+      <h2 class="title">주문은 밤에 한 번, 아침엔 확인만.</h2>
+      <p class="lead">거래처 연락, 들쭉날쭉한 배송, 문 앞에 놓인 상자. 바쁜 아침을 만들던 일을 CHADA가 대신해요.</p>
     </div>
-    <!-- TODO: 트럭 5대 → 1대로 합쳐지는 디오라마 연출 -->
-    <img class="truck-hero reveal" src="asset/truck-front.webp" alt="CHADA 냉장 탑차" width="260" height="260">
     <ol class="reasons">
-      <li class="reveal"><span class="big mono">5분</span><h3>한 번에 주문</h3><p>거래처 여러 곳을 앱 한 화면에서 주문해요. 마감은 전날 밤 11시.</p></li>
-      <li class="reveal"><span class="big mono">05:40</span><h3>새벽 입고</h3><p>동네 단위로 묶은 동선으로, 오픈 전에 매장 냉장고 안까지 넣어 둬요.</p></li>
-      <li class="reveal"><span class="big mono">2.8℃</span><h3>끊기지 않는 냉장</h3><p>적재부터 입고까지 온도를 기록하고, 사장님 폰으로 그대로 보내 드려요.</p></li>
+      <li class="reveal rs rs-order">
+        <div class="rs-fig">
+          <p class="sr-only">앱 한 화면에서 거래처 다섯 곳의 주문을 한 번에 끝내는 장면</p>
+          <div class="rs-clip" aria-hidden="true">
+          <div class="rs-phone" id="rsPhone">
+            <div class="scr">
+              <i class="island"></i>
+              <div class="hd"><b>CHADA</b><span class="mono">내일 05:40 도착</span></div>
+              <ul>
+                  <li><i class="slot"><img src="asset/avatar-veg.webp" alt=""></i><span class="bars"><i class="nm" style="--w:62%"></i><i class="qt"></i></span><i class="ck"></i></li>
+                  <li><i class="slot"><img src="asset/avatar-meat.webp" alt=""></i><span class="bars"><i class="nm" style="--w:50%"></i><i class="qt"></i></span><i class="ck"></i></li>
+                  <li><i class="slot"><img src="asset/avatar-fish.webp" alt=""></i><span class="bars"><i class="nm" style="--w:70%"></i><i class="qt"></i></span><i class="ck"></i></li>
+                  <li><i class="slot"><img src="asset/avatar-tofu.webp" alt=""></i><span class="bars"><i class="nm" style="--w:56%"></i><i class="qt"></i></span><i class="ck"></i></li>
+                  <li><i class="slot"><img src="asset/avatar-rice.webp" alt=""></i><span class="bars"><i class="nm" style="--w:64%"></i><i class="qt"></i></span><i class="ck"></i></li>
+              </ul>
+              <div class="ov"><div class="ov-in"><i class="ok"><svg viewBox="0 0 64 64"><path d="M20 33 L28.5 41.5 L45 24"/></svg></i><span>주문이 완료되었습니다</span></div></div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <h3>한 번에 주문</h3><p>거래처 여러 곳을 앱 한 화면에서 주문해요.<br> 마감은 전날 밤 11시.</p>
+      </li>
+      <li class="reveal rs rs-dawn">
+        <div class="rs-fig">
+          <div class="rs-street" id="rsStreet" role="img" aria-label="냉장차 한 대가 동네 가게를 차례로 들러 문 앞에 박스를 내려놓는 거리">
+            <i class="rs-road"></i>
+            <div class="rs-shopx"><img src="asset/shop-front.webp" alt=""></div><div class="rs-shopx flip"><img src="asset/shop-front.webp" alt=""></div><div class="rs-shopx tint"><img src="asset/shop-front.webp" alt=""></div>
+            <div class="rs-truckx"><img class="wh" src="asset/truck-wheel.webp" alt="" style="left:21.5%;top:100.7%"><img class="wh" src="asset/truck-wheel.webp" alt="" style="left:79.3%;top:100%"><img class="body" src="asset/truck-side.webp" alt=""></div>
+          </div>
+        </div>
+        <h3>새벽 입고</h3><p>가까운 가게끼리 한 번에 묶어 돌아요. 동네가 깨기 전에, 모든 가게 냉장고가 채워져요.</p>
+      </li>
+      <li class="reveal rs rs-cold">
+        <div class="rs-fig">
+          <div class="rs-note" aria-hidden="true">
+            <div class="hd"><i class="app"></i><b>CHADA</b><time class="mono">05:38</time></div>
+            <strong>입고 완료</strong>
+            <p>망원 김밥집 냉장고에 넣어 뒀어요.</p>
+            <div class="ph"><img src="asset/hero-box.webp" alt=""><span class="mono">입고 온도 2.8℃</span></div>
+          </div>
+          <p class="sr-only">입고 완료 알림: 망원 김밥집 냉장고에 넣어 뒀어요. 입고 온도 2.8℃.</p>
+        </div>
+        <h3>냉장고 안까지</h3><p>문 앞에 두고 가지 않아요. 냉장고 안에 넣고, 사진으로 바로 알려드려요.</p>
+      </li>
     </ol>
   </div>
 </section>
@@ -90,10 +177,14 @@
 <section class="route" id="route" aria-label="새벽 배송 경로">
   <div class="route-intro wrap reveal">
     <h2 class="title">동네가 자는 동안,<br>냉장고가 채워져요.</h2>
-    <p class="lead">CHADA 냉장차 한 대가 새벽 3시 30분에 출발해, 해 뜨기 전까지 동네 식당 여덟 곳을 차례로 돕니다.</p>
+    <p class="lead">냉장차 한 대가 새벽 3시 30분에 출발해, 해 뜨기 전 여덟 곳을 돌아요.</p>
   </div>
   <div class="route-scrolly" id="routeScrolly">
     <div class="route-stage">
+      <div class="route-hud">
+        <div class="route-clock mono" id="routeClock" aria-hidden="true">03:30</div>
+        <p class="route-done" id="routeDone">동네 식당 <em>8곳</em>, 입고 완료</p>
+      </div>
       <div class="route-scene" id="routeScene">
         <div class="route-glow"></div>
         <div class="route-tilt" id="routeTilt">
@@ -113,14 +204,9 @@
             <path id="routePath" fill="none" stroke="#5CE1E6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
             <g id="routeTruck"><g id="routeTruckFlip"><image id="routeTruckImg" href="asset/truck-front.webp" x="-130" y="-172" width="250" height="250"/></g></g>
           </svg>
+          <div class="route-chips" id="routeChips" aria-hidden="true"></div>
         </div>
-        <div class="route-hud" aria-hidden="true">
-          <div class="route-clock mono" id="routeClock">03:30</div>
-          <div class="route-count" id="routeCount">출발 전, 불 켜진 가게 0곳</div>
-        </div>
-        <div class="route-temp" aria-hidden="true">냉장 칸 <b class="mono" id="routeTemp">2.8℃</b></div>
       </div>
-      <ol class="route-stops" id="routeStops" aria-live="polite"></ol>
     </div>
   </div>
 </section>
