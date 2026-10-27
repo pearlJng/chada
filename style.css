@@ -97,8 +97,9 @@ html.intro-on .dots{opacity:0;pointer-events:none}
 .head{margin-bottom:clamp(40px,5vw,72px)}
 .title{font-size:var(--title);line-height:1.22;letter-spacing:-.01em;margin:0 0 20px;font-weight:700;text-wrap:balance}
 .lead{font-size:18px;color:var(--muted);max-width:34em;margin:0}
+.br-mo{display:inline}
 h3{font-size:20px;margin:0 0 6px;font-weight:700}
-.chip{display:inline-block;font-size:15px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--cold);color:var(--night);transform:rotate(-3deg)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--cold);color:var(--night);transform:rotate(-3deg)}
 
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .reveal.in{opacity:1;transform:none}
@@ -136,21 +137,23 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
 .h-world-fade{position:absolute;left:0;top:-2px;width:1672px;height:220px;background:linear-gradient(180deg,var(--night),rgba(7,17,31,0));pointer-events:none;display:none}
 
 .h-copy{position:absolute;left:50%;top:0;transform:translate(-50%,-100%);width:min(560px,88vw);text-align:center;z-index:5;text-shadow:0 2px 16px rgba(7,17,31,.45)} /* top set by script.js: bottom edge 28px above the box */
-.h-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,17,31,.65) 0%,rgba(7,17,31,.5) 40%,rgba(7,17,31,.28) 62%,rgba(7,17,31,0) 78%);opacity:var(--shade,0);pointer-events:none}
-.h-copy h1{font-size:clamp(30px,3.4vw,50px);line-height:1.15;letter-spacing:-.015em;margin:22px 0 20px;font-weight:700}
-.h-sub{font-size:17px;font-weight:500;line-height:1.6;color:var(--paper);margin:0 auto;max-width:26em;text-shadow:0 1px 2px rgba(7,17,31,.55),0 2px 14px rgba(7,17,31,.5)}
+.h-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,17,31,.38) 0%,rgba(7,17,31,.26) 40%,rgba(7,17,31,.12) 62%,rgba(7,17,31,0) 78%);opacity:var(--shade,0);pointer-events:none}
+.h-copy h1{font-size:clamp(30px,3.4vw,50px);line-height:1.15;letter-spacing:-.015em;margin:22px 0 20px;font-weight:700;text-shadow:0 2px 4px rgba(7,17,31,.35),0 4px 24px rgba(7,17,31,.4)}
+.h-sub{font-size:17px;font-weight:500;line-height:1.6;color:var(--paper);margin:0 auto;max-width:26em;text-shadow:0 1px 3px rgba(7,17,31,.55),0 2px 16px rgba(7,17,31,.45)}
 /* soft dark bloom behind the copy so it reads over wall, shutter or sky; fades in with the copy */
-.h-copy::before{content:"";position:absolute;inset:-40px -70px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(7,17,31,.62) 0%,rgba(7,17,31,.38) 45%,rgba(7,17,31,0) 75%);opacity:0;transition:opacity .6s var(--ease)}
+.h-copy::before{content:"";position:absolute;inset:-40px -70px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(7,17,31,.38) 0%,rgba(7,17,31,.2) 45%,rgba(7,17,31,0) 75%);opacity:0;transition:opacity .6s var(--ease)}
 .h-copy.on::before{opacity:1}
 .h-copy .chip,.h-copy h1,.h-copy .h-sub{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .h-copy.on .chip{opacity:1;transform:none}
 .h-copy.on h1{opacity:1;transform:none;transition-delay:.08s}
 .h-copy.on .h-sub{opacity:1;transform:none;transition-delay:.16s}
+.chip .bolt{flex:none;width:1em;height:1em;fill:#07111F}
+.h-copy.on .chip .bolt{animation:boltPop .35s cubic-bezier(.34,1.56,.64,1) .15s both}
+@keyframes boltPop{from{transform:scale(.6)}to{transform:none}}
 
 /* ===== 2. Morning ===== */
-.morning{padding:var(--section-y) 0;overflow-x:clip;background:radial-gradient(ellipse 45% 55% at 72% 55%,rgba(255,196,160,.16),transparent 70%),radial-gradient(ellipse 85% 75% at 65% 50%,#2E3F63 0%,#1A2945 45%,#07111F 100%)}
-.m-track{height:260vh}
-.m-stage{position:sticky;top:0;height:100vh;height:100svh;max-width:1280px;margin:0 auto;padding:72px var(--pad) 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(40px,6vw,96px);align-items:center;box-sizing:border-box}
+.morning{overflow-x:clip;background:radial-gradient(ellipse 45% 55% at 72% 55%,rgba(255,196,160,.16),transparent 70%),radial-gradient(ellipse 85% 75% at 65% 50%,#2E3F63 0%,#1A2945 45%,#07111F 100%)}
+.m-stage{position:relative;height:100vh;height:100svh;max-width:1280px;margin:0 auto;padding:72px var(--pad) 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(40px,6vw,96px);align-items:center;box-sizing:border-box}
 /* icon-bell.webp: the drawn bell sits at x49-188 / y43-199 of 240, so the box hugs the drawing */
 .bell{--h:72px;position:relative;width:calc(var(--h) * .891);height:var(--h);margin-bottom:20px}
 .bell-swing,.bell-ring{width:100%;height:100%;transform-origin:50% 6%}
@@ -225,7 +228,7 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
    --vis = the part of the screen visible inside the tile (tile height - 22px top - 8px frame). */
 .rs-clip{position:absolute;inset:0;overflow:hidden;border-radius:14px}
 .rs-phone{position:absolute;left:50%;top:22px;width:min(300px,52%);aspect-ratio:9/19.5;translate:-50% 0;box-sizing:border-box;border:8px solid #11161F;border-radius:40px;background:#11161F;box-shadow:0 24px 48px rgba(0,0,0,.5)}
-.rs-phone .scr{--vis:calc(var(--tile-h) - 30px);position:relative;height:100%;border-radius:32px;background:#121A28;padding:18px;box-sizing:border-box;overflow:hidden}
+.rs-phone .scr{--vis:calc(var(--tile-h) - 30px);position:relative;container-type:inline-size;height:100%;border-radius:32px;background:#121A28;padding:18px;box-sizing:border-box;overflow:hidden}
 .rs-phone .island{position:absolute;left:50%;top:7px;width:30%;height:16px;translate:-50% 0;border-radius:999px;background:#11161F}
 .rs-phone .hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 8px;margin:10px 0 16px;line-height:1.25}
 .rs-phone .hd b{font-size:17px;font-weight:700;color:#F4F2EC;letter-spacing:.02em}
@@ -253,7 +256,7 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
 .rs-phone .ok{flex:none;width:76px;height:76px;border-radius:50%;background:var(--cold);transform:scale(.6)}
 .rs-phone .ok svg{display:block;width:100%;height:100%}
 .rs-phone .ok path{fill:none;stroke:#07111F;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40}
-.rs-phone .ov span{font-size:17px;font-weight:600;line-height:1.35;color:#F4F2EC;opacity:0;text-align:center;padding:0 8px}
+.rs-phone .ov span{font-size:clamp(15px,calc((100cqw + 28px) / 9),17px);font-weight:600;line-height:1.35;color:#F4F2EC;opacity:0;text-align:center;padding:0 4px;white-space:nowrap} /* one line: ~8.9em wide, sized to the screen (content box + its 18px sides); never under 15px */
 .rs-phone.done .ov{visibility:visible;animation:fadeIn .3s ease forwards}
 .rs-phone.done .ok{animation:okPop .4s cubic-bezier(.34,1.56,.64,1) forwards}
 .rs-phone.done .ok path{animation:okDraw .35s ease-out .15s forwards}
@@ -276,7 +279,7 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
 .rs-truckx .wh{position:absolute;width:14.3%;height:auto;transform:translate(-50%,-50%)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 /* card 3: "delivered" notification. Plays on .play: drop in -> photo -> temperature chip + badge bump */
-.rs-note{position:absolute;left:50%;top:46%;width:min(340px,84%);translate:-50% -50%;box-sizing:border-box;padding:16px;border-radius:20px;background:rgba(244,242,236,.08);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(244,242,236,.12);box-shadow:0 18px 40px rgba(0,0,0,.4);opacity:0}
+.rs-note{position:relative;width:min(340px,84%);box-sizing:border-box;padding:16px;border-radius:20px;background:rgba(244,242,236,.08);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(244,242,236,.12);box-shadow:0 18px 40px rgba(0,0,0,.4);opacity:0}
 .rs-note .hd{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .rs-note .app{position:relative;flex:none;width:26px;height:26px;border-radius:7px;background:var(--cold)}
 .rs-note .app::after{content:"";position:absolute;left:9.5px;top:5.5px;width:5px;height:10px;border:solid #07111F;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
@@ -327,7 +330,7 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
 #cold .lead{margin-left:auto;margin-right:auto}
 .cl-fig{--ph:min(760px,86svh,calc(86vw * 19.5 / 9));--pw:calc(var(--ph) * 9 / 19.5);--line:#D9DEE6;--end:2.3s;--at2:1.05;position:relative;height:calc(var(--ph) * .82);clip-path:inset(-200px -100vw 0 -100vw)}
 .cl-fig::before{content:"";position:absolute;left:50%;top:-48px;width:calc(var(--pw) + 128px);height:calc(var(--ph) + 96px);translate:-50% 0;border-radius:50%;background:rgba(92,225,230,.08);filter:blur(60px);pointer-events:none}
-.cl-phone{--ink:#07111F;--ink-muted:#5B6474;--phone:#11161F;position:relative;width:var(--pw);margin:0 auto;aspect-ratio:9/19.5;box-sizing:border-box;border:8px solid var(--phone);border-radius:40px;background:var(--phone);box-shadow:0 30px 60px rgba(0,0,0,.45);color:var(--ink);pointer-events:none;user-select:none;container-type:size}
+.cl-phone{--ink:#07111F;--ink-muted:#5B6474;--phone:#11161F;position:relative;width:var(--pw);margin:0 auto;aspect-ratio:9/19.5;box-sizing:border-box;border:8px solid var(--phone);border-radius:40px;background:var(--phone);box-shadow:0 30px 60px rgba(0,0,0,.45);color:var(--ink);pointer-events:none;user-select:none;container-type:size;transform-origin:50% 0}
 .cl-phone .scr{position:relative;display:flex;flex-direction:column;gap:clamp(6px,1.2cqh,10px);height:100%;box-sizing:border-box;padding:0 16px;border-radius:32px;background:#EEF1F5;overflow:hidden}
 .cl-phone .ph-status{margin:0 -16px}
 .cl-phone p{margin:0}
@@ -360,8 +363,8 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
   .cl-note{display:block;position:absolute;top:var(--y,0);width:240px;box-sizing:border-box;padding:16px 18px;border-radius:16px;background:rgba(244,242,236,.05);border:1px solid rgba(244,242,236,.10);translate:0 -50%}
   .cl-note b{display:block;font-size:16px;line-height:1.4;color:var(--paper)}
   .cl-note p{margin:4px 0 0;font-size:15px;line-height:1.5;color:var(--muted)}
-  .cl-note.l{right:calc(50% + var(--pw) / 2 + 56px)}
-  .cl-note.r{left:calc(50% + var(--pw) / 2 + 56px)}
+  .cl-note.l{right:calc(50% + var(--vis-pw,var(--pw)) / 2 + 56px)}
+  .cl-note.r{left:calc(50% + var(--vis-pw,var(--pw)) / 2 + 56px)}
   /* dashed leader from the note to the element's edge inside the screen, ending in a dot */
   .cl-link{display:block;position:absolute;z-index:1;left:var(--x1,0);top:var(--y,0);width:var(--w,0);height:0;border-top:1px dashed rgba(92,225,230,.5)}
   .cl-link::after{content:"";position:absolute;top:-3.5px;width:6px;height:6px;border-radius:50%;background:var(--cold)}
@@ -413,24 +416,54 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
 .rv-b .dur{margin-left:auto;padding:2px 8px;border-radius:999px;background:rgba(7,17,31,.06);white-space:nowrap}
 
 /* ===== 7. Process ===== */
-.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;counter-reset:s}
-.steps li{position:relative;padding:24px 20px;border-top:2px solid var(--line)}
-.steps li.in{border-color:var(--cold)}
-.steps .n{display:block;color:var(--cold);font-size:15px;margin-bottom:12px}
-.steps p{margin:0 0 12px;color:var(--muted);font-size:16px}
-.steps em{font-style:normal;font-size:15px;color:var(--paper)}
+/* 7. process: five stops on a road. Base = mobile (stacked cards on a vertical progress line); the road scene is PC only */
+.pr-steps{position:relative;list-style:none;margin:0;padding:0 0 0 28px;display:grid;gap:12px}
+.pr-steps::before,.pr-steps::after{content:"";position:absolute;left:8px;top:31px;bottom:var(--pr-end,31px);width:2px;background:rgba(244,242,236,.12)}
+.pr-steps::after{background:var(--cold);transform:scaleY(0);transform-origin:50% 0}
+.pr.play .pr-steps::after{animation:prLine 1.2s linear both}
+@keyframes prLine{to{transform:none}}
+.pr-card{position:relative;padding:22px 20px;border-radius:18px;background:rgba(244,242,236,.04);border:1px solid rgba(244,242,236,.10);transition:border-color .3s var(--ease),translate .3s var(--ease),box-shadow .3s var(--ease)}
+.pr-top{display:flex;justify-content:space-between;align-items:center;margin:0 0 14px}
+.pr-n,.pr-d{padding:3px 10px;border-radius:999px;background:rgba(244,242,236,.08);font-size:14px;line-height:1.4;color:var(--muted);transition:background-color .3s,color .3s}
+.pr-card h3{margin:0 0 8px;font-size:20px;line-height:1.35}
+.pr-desc{margin:0;font-size:16px;line-height:1.6;color:var(--muted)}
+/* step 4: a paper-coloured label straddling the top edge (cyan is taken by the lit state), a slightly brighter card, a soft halo when lit */
+.pr-key{position:absolute;top:0;left:50%;translate:-50% -50%;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:var(--paper);font-size:14px;font-weight:700;line-height:1.3;color:#07111F;white-space:nowrap}
+.pr-key svg{flex:none;width:12px;height:12px;fill:#07111F}
+.pr-card.key{background:rgba(244,242,236,.07)}
+.pr-card.key.on{box-shadow:0 0 0 4px rgba(92,225,230,.12)}
+.pr-stop{position:absolute;left:-25px;top:26px;width:10px;height:10px;z-index:1}
+.pr-stop::after{content:"";position:absolute;inset:0;border-radius:50%;background:#2A3548;transition:background-color .3s}
+.pr-card.on{border-color:rgba(92,225,230,.5);translate:0 -4px}
+.pr-card.on .pr-n{background:var(--cold);color:#07111F}
+.pr-card.on .pr-stop::after{background:var(--cold)}
+.pr-lane{display:none}
 
 /* ===== 8. FAQ ===== */
-.faq{border-top:1px solid var(--line);margin-top:32px}
-.faq details{border-bottom:1px solid var(--line)}
-.faq summary{list-style:none;cursor:pointer;padding:22px 44px 22px 0;position:relative;font-weight:600;font-size:18px}
+/* each question is a box; the answer row grows from 0fr to 1fr (script.js holds `open` until the close finishes) */
+.faq{display:grid;gap:12px;margin-top:32px}
+.faq details{border:1px solid rgba(244,242,236,.10);border-radius:16px;background:rgba(244,242,236,.04);transition:background-color .2s,border-color .3s}
+.faq details:hover{background:rgba(244,242,236,.06)}
+.faq details.is-open{border-color:rgba(92,225,230,.4);background:rgba(244,242,236,.06)}
+.faq summary{list-style:none;cursor:pointer;position:relative;padding:22px 72px 22px 24px;font-size:18px;font-weight:600;color:var(--paper)}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"";position:absolute;right:6px;top:50%;width:14px;height:14px;margin-top:-7px;background:linear-gradient(var(--paper),var(--paper)) center/14px 2px no-repeat,linear-gradient(var(--paper),var(--paper)) center/2px 14px no-repeat;transition:transform .3s var(--ease)}
-.faq details[open] summary::after{transform:rotate(45deg)}
-.faq details p{margin:0 0 22px;color:var(--muted)}
+.faq-ic{position:absolute;right:20px;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:50%;background:rgba(244,242,236,.08);transition:background-color .3s,transform .3s var(--ease)}
+.faq-ic::before,.faq-ic::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:2px;margin:-1px 0 0 -6px;border-radius:1px;background:var(--paper);transition:background-color .3s}
+.faq-ic::after{transform:rotate(90deg)}
+.faq details.is-open .faq-ic{background:var(--cold);transform:rotate(45deg)}
+.faq details.is-open .faq-ic::before,.faq details.is-open .faq-ic::after{background:#07111F}
+.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s var(--ease)}
+.faq details.is-open .faq-a{grid-template-rows:1fr}
+.faq-a>div{min-height:0;overflow:hidden}
+.faq-a p{margin:0;padding:0 24px 22px;font-size:16px;line-height:1.7;color:var(--muted)}
 
 /* ===== 9. Contact ===== */
-.contact{background:linear-gradient(180deg,var(--night),#0B1830)}
+/* closing: a faint row of lit shops repeated along the floor, fading upward and at the sides; behind the form */
+.contact{position:relative;overflow:hidden;padding-bottom:60px;background:linear-gradient(180deg,#07111F 0%,#14284A 100%)}
+.contact>.wrap{position:relative;z-index:1}
+.ct-town{position:absolute;left:0;right:0;bottom:0;z-index:0;height:120px;pointer-events:none;background:url(asset/village-row.webp) center bottom / auto 100% repeat-x;opacity:.28;filter:saturate(.6) brightness(.85);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 55%),linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 55%),linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-composite:intersect}
 .form{display:grid;gap:16px;padding:32px;border-radius:20px;background:var(--night-2);border:1px solid var(--line)}
 .form label{display:grid;gap:6px;font-size:15px;color:var(--muted)}
 .form input,.form select{font:inherit;font-size:16px;color:var(--paper);background:rgba(244,242,236,.05);border:1px solid var(--line);border-radius:12px;padding:13px 14px;transition:border-color .2s,box-shadow .2s}
@@ -440,10 +473,6 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
 .cta{margin-top:8px;font:inherit;font-weight:700;font-size:17px;color:var(--night);background:var(--cold);border:0;border-radius:999px;padding:16px 24px;cursor:pointer;transition:transform .2s var(--ease)}
 .cta:hover{transform:translateY(-2px)}
 .form-msg{margin:0;min-height:1.7em;font-size:15px;color:var(--cold)}
-
-/* ===== Footer ===== */
-.footer{display:flex;flex-wrap:wrap;gap:8px 24px;padding:32px var(--pad) calc(40px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
-.footer strong{color:var(--paper);letter-spacing:.08em}
 
 /* ===== Responsive ===== */
 @media (max-width:900px){
@@ -459,10 +488,9 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
   .reasons{gap:16px}
   .rs-fig{--tile-h:360px}
   #morning-after .title,#morning-after .lead,#route .lead{text-wrap:balance}
-  .steps{grid-template-columns:1fr}
 
-  .h-copy h1{margin:14px 0 12px}
-  .h-sub{font-size:16px;text-wrap:balance}
+  .h-copy h1{margin:14px 0 12px;font-size:38px}
+  .h-sub{font-size:17px;line-height:1.55;text-wrap:balance}
   .h-sub br{display:none} /* the PC line break splits oddly at 88vw */
   .lead{font-size:16px}
   .h-world-fade{display:block}
@@ -500,8 +528,159 @@ h3{font-size:20px;margin:0 0 6px;font-weight:700}
   .reasons>li:hover,.reasons>li:focus-within{translate:none;box-shadow:none}
   .bell::before,.bell::after,.bell-lines::before,.bell-lines::after{display:none}
   .route-bubble.on .in{animation:none;opacity:1;scale:1}
+  .pr-steps::after{animation:none;transform:none}
+  .faq-a{transition:none}
+  .pr-card,.pr-card *{transition:none}
   .rv{-webkit-mask-image:none;mask-image:none;max-width:1280px;margin:0 auto -32px}
   .rv-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;width:auto}
   .rv-b{width:auto;margin:0}
 }
 @media (prefers-reduced-motion:reduce) and (max-width:900px){.rv-track{grid-template-columns:1fr}}
+
+/* ===== PC sizes: one scale for everything (--s from script.js, 1 at 1440x900). Mobile (<=900px) keeps the values above ===== */
+@media (min-width:901px){
+  :root{--title:max(32px,calc(52px * var(--s,1)));--pad:calc(64px * var(--s,1));--section-y:calc(140px * var(--s,1))}
+  .br-mo{display:none}
+  .title{margin-bottom:calc(20px * var(--s,1))}
+  .lead{font-size:max(16px,calc(17px * var(--s,1)))}
+  .head,#cold .head{margin-bottom:calc(48px * var(--s,1))}
+  .wrap{max-width:calc(1200px * var(--s,1))}
+  .wrap.narrow{max-width:calc(820px * var(--s,1))}
+  .two-col{gap:calc(96px * var(--s,1))}
+  .m-stage{max-width:calc(1200px * var(--s,1));gap:calc(96px * var(--s,1))}
+
+  /* 3 */
+  .reasons{grid-template-columns:repeat(3,calc(380px * var(--s,1)));justify-content:center;gap:calc(24px * var(--s,1))}
+  .reasons>li{padding:calc(16px * var(--s,1));border-radius:calc(20px * var(--s,1))}
+  .rs-fig{--tile-h:calc(280px * var(--s,1));margin-bottom:calc(24px * var(--s,1))}
+  .reasons h3{margin:0 0 calc(8px * var(--s,1));font-size:max(18px,calc(20px * var(--s,1)))}
+  .reasons p{font-size:max(16px,calc(16px * var(--s,1)))}
+  .rs-phone{width:min(300px,max(52%,160px))} /* wide enough for the one-line "done" text at 15px */
+  .rs-note{width:min(calc(340px * var(--s,1)),84%);padding:calc(16px * var(--s,1));border-radius:calc(20px * var(--s,1))}
+  .rs-note .hd{gap:calc(8px * var(--s,1));margin-bottom:calc(12px * var(--s,1))}
+  .rs-note .hd b,.rs-note .hd time{font-size:max(14px,calc(14px * var(--s,1)))}
+  .rs-note strong{font-size:max(15px,calc(16px * var(--s,1)))}
+  .rs-note>p{font-size:max(14px,calc(15px * var(--s,1)))}
+  .rs-note .ph{height:calc(96px * var(--s,1));margin-top:calc(12px * var(--s,1));border-radius:calc(12px * var(--s,1))}
+
+  /* 4 */
+  .route-stage{gap:calc(48px * var(--s,1))}
+  .route-scene{width:calc(960px * var(--s,1))}
+
+  /* 5: the phone and everything on its screen follow --s; screen text never below 14px */
+  .cl-fig{--pw:calc(340px * var(--s,1));--ph:calc(var(--pw) * 19.5 / 9)}
+  .cl-phone{border-width:calc(8px * var(--s,1));border-radius:calc(40px * var(--s,1))}
+  .cl-phone .scr{gap:calc(10px * var(--s,1));padding:0 calc(16px * var(--s,1));border-radius:calc(32px * var(--s,1))}
+  .cl-phone .ph-status{margin:0 calc(-16px * var(--s,1));height:calc(46px * var(--s,1));padding:0 calc(26px * var(--s,1));font-size:max(14px,calc(14px * var(--s,1)))}
+  .cl-phone .ph-island{top:calc(9px * var(--s,1));width:calc(96px * var(--s,1));height:calc(28px * var(--s,1));margin-left:calc(-48px * var(--s,1))}
+  .cl-bar{margin-top:calc(-4px * var(--s,1));font-size:max(14px,calc(16px * var(--s,1)))}
+  .cl-box b{font-size:max(14px,calc(18px * var(--s,1)))}
+  .cl-box span{font-size:max(14px,calc(14px * var(--s,1)))}
+  .cl-sum{gap:calc(8px * var(--s,1));padding:calc(14px * var(--s,1));border-radius:calc(14px * var(--s,1))}
+  .cl-sum b{font-size:max(14px,calc(15px * var(--s,1)))}
+  .cl-sum .mono{font-size:max(14px,calc(22px * var(--s,1)))}
+  .cl-sum .ck{width:calc(22px * var(--s,1));height:calc(22px * var(--s,1))}
+  .cl-sum .ck svg{width:calc(15px * var(--s,1));height:calc(15px * var(--s,1))}
+  .cl-tl{gap:calc(8px * var(--s,1));padding-left:calc(22px * var(--s,1))}
+  .cl-tl .dot{left:calc(-22px * var(--s,1));top:calc(15px * var(--s,1));width:calc(12px * var(--s,1));height:calc(12px * var(--s,1))}
+  .cl-tl .line{left:calc(4.5px * var(--s,1));width:calc(3px * var(--s,1))}
+  .cl-tl .ct{padding:calc(10px * var(--s,1)) calc(12px * var(--s,1));border-radius:calc(12px * var(--s,1))}
+  .cl-tl .hd{font-size:max(14px,calc(15px * var(--s,1)))}
+  .cl-tl .hd time,.cl-tl .ds,.cl-tl .chip{font-size:max(14px,calc(14px * var(--s,1)))}
+  .cl-tl .chip{padding:calc(2px * var(--s,1)) calc(8px * var(--s,1))}
+  .cl-tl .photo{height:calc(96px * var(--s,1));margin-top:calc(8px * var(--s,1));border-radius:calc(10px * var(--s,1))}
+  .cl-fade{height:calc(80px * var(--s,1))}
+
+  /* 6 */
+  .rv{gap:calc(20px * var(--s,1));padding:calc(8px * var(--s,1)) 0 calc(32px * var(--s,1));margin:0 calc(var(--pad) * -1) calc(-32px * var(--s,1))}
+  .rv-b{width:calc(360px * var(--s,1));margin-right:calc(20px * var(--s,1));padding:calc(18px * var(--s,1)) calc(20px * var(--s,1));border-radius:calc(20px * var(--s,1)) calc(20px * var(--s,1)) calc(20px * var(--s,1)) calc(6px * var(--s,1))}
+  .rv-b p{font-size:max(16px,calc(17px * var(--s,1)))}
+  .rv-b .by{gap:calc(8px * var(--s,1));margin-top:calc(14px * var(--s,1));font-size:max(14px,calc(14px * var(--s,1)))}
+  .rv-b .by img{width:calc(28px * var(--s,1));height:calc(28px * var(--s,1))}
+  .rv-b .dur{padding:calc(2px * var(--s,1)) calc(8px * var(--s,1))}
+
+  /* 7 */
+  /* 7: road scene. Cards centred; road full width, fading out at both ends with the truck on it */
+  .pr{background:linear-gradient(90deg,#07111F,#16294A);overflow-x:clip}
+  .pr-world{position:relative;margin:0 calc(50% - 50vw)}
+  .pr-row{position:relative;z-index:1;max-width:calc(1200px * var(--s,1));margin:0 auto}
+  .pr-steps{grid-template-columns:repeat(5,minmax(0,1fr));gap:calc(16px * var(--s,1));padding:0}
+  .pr-steps::before,.pr-steps::after{display:none}
+  .pr-card{padding:calc(22px * var(--s,1)) calc(20px * var(--s,1));border-radius:calc(18px * var(--s,1))}
+  .pr-top{margin-bottom:calc(14px * var(--s,1))}
+  .pr-n,.pr-d{padding:calc(3px * var(--s,1)) calc(10px * var(--s,1));font-size:max(14px,calc(14px * var(--s,1)))}
+  .pr-card h3{margin-bottom:calc(8px * var(--s,1));font-size:max(18px,calc(20px * var(--s,1)))}
+  .pr-desc{font-size:max(16px,calc(16px * var(--s,1)))}
+  .pr-key{gap:calc(5px * var(--s,1));padding:calc(4px * var(--s,1)) calc(12px * var(--s,1));font-size:max(14px,calc(14px * var(--s,1)))}
+  .pr-key svg{width:calc(12px * var(--s,1));height:calc(12px * var(--s,1))}
+  /* dashed stem from the card down to its stop on the road's edge; it stays put when the card lifts */
+  .pr-stop{left:50%;top:100%;width:0;height:calc(32px * var(--s,1));border-left:1px dashed rgba(244,242,236,.2);transition:translate .3s var(--ease)}
+  .pr-stop::after{inset:auto auto calc(-5px * var(--s,1)) calc(-5.5px * var(--s,1));width:calc(10px * var(--s,1));height:calc(10px * var(--s,1))}
+  .pr-card.on .pr-stop{translate:0 4px}
+  /* the lanes start at the card bottoms (top padding = the stems' gap) so the truck's roof stays inside the mask */
+  .pr-lane{display:block;position:relative;z-index:0;padding-top:calc(32px * var(--s,1));-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);pointer-events:none}
+  .pr-drive{position:absolute;left:0;right:0;bottom:0;z-index:2;height:calc(32px * var(--s,1) + 56px * var(--s,1) + 1px);padding:0}
+  .pr-road{display:block;position:relative;height:calc(56px * var(--s,1));background:#0C1729;border-top:1px solid rgba(244,242,236,.08)}
+  .pr-road::before{content:"";position:absolute;left:0;right:0;top:50%;height:calc(2px * var(--s,1));translate:0 -50%;background:repeating-linear-gradient(90deg,rgba(244,242,236,.15) 0 calc(18px * var(--s,1)),transparent calc(18px * var(--s,1)) calc(32px * var(--s,1)))}
+  /* wheels touch down 40*s below the road's top edge; their bottoms hang .0748 of the truck width under the body box */
+  .pr-truck{display:block;position:absolute;left:0;z-index:1;width:calc(120px * var(--s,1));bottom:calc(16px * var(--s,1) + 1px + 120px * var(--s,1) * .0748);user-select:none}
+  .pr-body{position:relative;display:block;width:100%;max-width:none}
+  .pr-wheel{position:absolute;width:14.3%;max-width:none;transform:translate(-50%,-50%)}
+
+  /* 8 */
+  .faq{gap:calc(12px * var(--s,1));margin-top:calc(28px * var(--s,1))}
+  .faq details{border-radius:calc(16px * var(--s,1))}
+  .faq summary{padding:calc(22px * var(--s,1)) calc(72px * var(--s,1)) calc(22px * var(--s,1)) calc(24px * var(--s,1));font-size:max(16px,calc(18px * var(--s,1)))}
+  .faq-ic{right:calc(20px * var(--s,1));width:calc(32px * var(--s,1));height:calc(32px * var(--s,1));margin-top:calc(-16px * var(--s,1))}
+  .faq-ic::before,.faq-ic::after{width:calc(12px * var(--s,1));margin-left:calc(-6px * var(--s,1))}
+  .faq-a p{padding:0 calc(24px * var(--s,1)) calc(22px * var(--s,1));font-size:max(16px,calc(16px * var(--s,1)))}
+
+  /* 9: closing town band */
+  .contact{padding-bottom:calc(100px * var(--s,1))}
+  .ct-town{height:calc(200px * var(--s,1))}
+
+  /* hero copy */
+  .h-copy{width:min(calc(760px * var(--s,1)),92vw)}
+  .h-copy h1{font-size:calc(64px * var(--s,1))}
+  .h-sub{font-size:calc(20px * var(--s,1));line-height:1.55;max-width:calc(640px * var(--s,1))}
+  .h-copy .chip{font-size:calc(16px * var(--s,1))}
+
+  /* 9 */
+  .form{gap:calc(16px * var(--s,1));padding:calc(32px * var(--s,1));border-radius:calc(20px * var(--s,1))}
+  .form label{gap:calc(6px * var(--s,1));font-size:max(14px,calc(15px * var(--s,1)))}
+  .form input,.form select{font-size:max(16px,calc(16px * var(--s,1)));padding:calc(13px * var(--s,1)) calc(14px * var(--s,1));border-radius:calc(12px * var(--s,1))}
+  .cta{margin-top:calc(8px * var(--s,1));font-size:max(16px,calc(17px * var(--s,1)));padding:calc(16px * var(--s,1)) calc(24px * var(--s,1))}
+}
+
+/* ===== One screen per section (PC with snap: the same condition as the snap script) =====
+   Each section's [title block + content] (.section-inner) is one group, centred in the screen below the header.
+   Same rhythm everywhere: title -> sub 16*s, sub -> content 48*s.
+   #route and #cold are the exception: their art is cut by the bottom edge, so the group sits on the floor */
+@media (min-width:1024px) and (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  :root{--hdr:76px}
+  #morning-after,#cold,#proof,#process,#faq,#contact{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-top:var(--hdr);padding-bottom:0;box-sizing:border-box}
+  .section-inner{width:100%;flex:none}
+  .title{margin-bottom:calc(16px * var(--s,1))}
+  #process .head,#faq .title,#contact .two-col>div{text-align:center}
+  #process .lead,#contact .lead{margin-left:auto;margin-right:auto;max-width:none}
+  .faq{margin-top:calc(48px * var(--s,1))} /* no sub here; collapses with the title's 16 into 48 */
+  .rv{margin-top:calc(-8px * var(--s,1))}  /* the rows' top padding (shadow room) is part of the 48 */
+
+  /* 2: copy and phone centred against each other under the header; the phone never taller than the screen allows */
+  .m-stage{padding-top:var(--hdr);padding-bottom:0}
+  .phone{height:min(calc(700px * var(--s,1)),calc(100svh - var(--hdr) - 64px))}
+
+  /* 4: on the floor: diorama cut by the edge, title block 48*s above it */
+  .route-stage{height:100vh;height:100svh;box-sizing:border-box;justify-content:flex-end;padding-top:var(--hdr)}
+
+  /* 5: on the floor: the phone (340*s) loses its bottom 18% to the edge, title block 48*s above it */
+  #cold{height:100vh;height:100svh;justify-content:flex-end}
+
+  /* 9: centred 100*s higher (half the town band) so the form clears the village; the form ends as it starts */
+  #contact{padding-bottom:calc(200px * var(--s,1))}
+  #contact .two-col{display:flex;flex-direction:column;align-items:center;gap:0}
+  #contact .two-col>div{margin-bottom:calc(48px * var(--s,1))}
+  #contact .form{width:calc(720px * var(--s,1));box-sizing:border-box;grid-template-columns:1fr 1fr;column-gap:calc(16px * var(--s,1))}
+  #contact .form .cta,#contact .form .form-msg{grid-column:1 / -1}
+  #contact .form-msg:empty{display:none}
+}

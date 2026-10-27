@@ -16,6 +16,16 @@
     }
     return 3 * (1 - u) * (1 - u) * u * y1 + 3 * (1 - u) * u * u * y2 + u * u * u;
   }
+  // one scale for every PC section: 1 at 1440x900, kept within .8-1.4 (CSS uses it above 900px only)
+  function setScale() {
+    var k = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+    document.documentElement.style.setProperty('--s', Math.min(1.4, Math.max(.8, k)).toFixed(4));
+    window.dispatchEvent(new Event('chada:scale'));
+  }
+  setScale();
+  function screenScale() { return parseFloat(document.documentElement.style.getPropertyValue('--s')) || 1; }
+  var scaleRaf = 0;
+  window.addEventListener('resize', function () { cancelAnimationFrame(scaleRaf); scaleRaf = requestAnimationFrame(setScale); });
   function progressOf(el) {
     var r = el.getBoundingClientRect(), span = r.height - window.innerHeight;
     return clamp(-r.top / span);
@@ -164,7 +174,7 @@
      scroll-driven scenes (hero door, morning messages) play out as the page glides through them ===== */
   var snap = (function () {
     var mq = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
-    var root = document.documentElement, track = document.getElementById('morningTrack');
+    var root = document.documentElement, morningSec = document.getElementById('morning');
     var SECTIONS = ['morning-after', 'route', 'cold', 'proof', 'process', 'faq', 'contact'];
     var BASE = .8, UP_SCENE = .9, LOCK = 400, TICK = 30, LONG = 1.2; // a section counts as long past 1.2 screens (less is just bottom padding)
     var anim = null, lockUntil = 0, acc = 0, accDir = 0, lastWheel = 0;
@@ -176,16 +186,17 @@
 
     // stops, top to bottom. scene: going down from here plays a scroll-driven scene over `scene` seconds
     function stops() {
-      var H = window.innerHeight, max = root.scrollHeight - H, ht = top(heroSec), tt = top(track);
+      var H = window.innerHeight, max = root.scrollHeight - H, ht = top(heroSec);
       var list = [
         { id: 'hero', y: ht, scene: 2.6 },
         { y: ht + heroSec.offsetHeight - H },
-        { id: 'morning', y: tt, scene: 3.2 },
-        { y: tt + track.offsetHeight - H }
+        { id: 'morning', y: top(morningSec) }
       ];
       SECTIONS.forEach(function (id) { list.push({ id: id, y: top(document.getElementById(id)) }); });
       list.push({ end: true, y: max });
-      return list.filter(function (p, i) { p.y = Math.min(Math.round(p.y), max); return p.end || p.y < max - 2; });
+      // stops past the page bottom collapse onto it; the plain bottom stop goes when the last section already ends there (#contact)
+      list.forEach(function (p) { p.y = Math.min(Math.round(p.y), max); });
+      return list.filter(function (p, i) { return p.end ? p.y > list[i - 1].y + 2 : i === list.length - 2 || p.y < max - 2; });
     }
 
     function go(y, dur, ease) {
@@ -300,7 +311,7 @@
   })();
 
   /* ===== Reveal ===== */
-  var revealEls = document.querySelectorAll('.reveal, .steps li, .cl-fig');
+  var revealEls = document.querySelectorAll('.reveal, .cl-fig');
   if (reduce || !('IntersectionObserver' in window)) {
     revealEls.forEach(function (el) { el.classList.add('in'); });
   } else {
@@ -316,14 +327,15 @@
     var steps = tl.querySelectorAll('.st'), sum = document.getElementById('coldSum');
     var notes = { l: document.getElementById('coldNoteL'), r: document.getElementById('coldNoteR') };
     var links = { l: document.getElementById('coldLinkL'), r: document.getElementById('coldLinkR') };
-    var FILL = 0.5, RUN = 1.8, DOT = 21; // fill starts after the phone rises (s) and takes RUN s; dot centre below a step's top
+    var phone = document.getElementById('coldPhone');
+    var FILL = 0.5, RUN = 1.8; // fill starts after the phone rises (s) and takes RUN s
     function box(el) { // layout box relative to the stage, ignoring the entrance transform
       var x = 0, y = 0, w = el.offsetWidth, h = el.offsetHeight;
       while (el && el !== fig) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; if (el && el !== fig) { x += el.clientLeft; y += el.clientTop; } }
       return { x: x, y: y, w: w, h: h };
     }
     function measure() {
-      var ys = [].map.call(steps, function (st) { return st.offsetTop + DOT; });
+      var ys = [].map.call(steps, function (st) { var d = st.querySelector('.dot'); return st.offsetTop + d.offsetTop + d.offsetHeight / 2; });
       var top = ys[0], h = ys[ys.length - 1] - top;
       tl.style.setProperty('--top', top + 'px'); tl.style.setProperty('--h', h + 'px');
       steps.forEach(function (st, i) { st.style.setProperty('--at', (FILL + RUN * (ys[i] - top) / h).toFixed(2)); });
@@ -338,9 +350,82 @@
       links.l.style.cssText = '--x1:' + nl + 'px;--y:' + yl + 'px;--w:' + (card.x - nl) + 'px';
       links.r.style.cssText = '--x1:' + (s.x + s.w) + 'px;--y:' + yr + 'px;--w:' + (nr - s.x - s.w) + 'px';
     }
-    measure(); window.addEventListener('resize', measure);
+    measure(); window.addEventListener('resize', measure); window.addEventListener('chada:scale', measure);
     if (document.fonts) document.fonts.ready.then(measure);
   })();
+
+  /* ===== 7. Process: a truck drives straight across the road; each card lights as the truck's nose passes its stop.
+     Mobile: the vertical line fills and the cards light one by one ===== */
+  (function process() {
+    var section = document.getElementById('process'), world = document.getElementById('prWorld');
+    var list = document.getElementById('prSteps'), cards = [].slice.call(list.children);
+    var truck = document.getElementById('prTruck'), body = document.getElementById('prBody');
+    var wheels = [].slice.call(truck.querySelectorAll('.pr-wheel'));
+    var pcMq = window.matchMedia('(min-width: 901px)');
+    var RUN = 4.5, ACCEL = .5, STEP_MO = .3; // seconds; after ACCEL the speed stays constant, off the right edge included
+    var L = null, t0 = 0, raf = 0;
+
+    function layout() {
+      list.style.setProperty('--pr-end', (cards[cards.length - 1].offsetHeight - 31) + 'px');
+      if (!pcMq.matches) { L = null; return; }
+      var wr = world.getBoundingClientRect(), tw = truck.offsetWidth;
+      var start = -tw - 20, end = wr.width + 20;
+      L = { tw: tw, start: start, wheelD: tw * .143,
+        v: (end - start) / (RUN - ACCEL / 2), // distance over a ramp of ACCEL (covers v*ACCEL/2) plus constant speed after
+        stops: cards.map(function (c) { var r = c.querySelector('.pr-stop').getBoundingClientRect(); return r.left - wr.left; }) };
+    }
+    function xAt(t) { return t < ACCEL ? L.start + L.v * t * t / (2 * ACCEL) : L.start + L.v * (t - ACCEL / 2); }
+
+    function render(t) {
+      var x = xAt(t), nose = x + L.tw;
+      truck.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
+      body.style.transform = 'translate3d(0,' + (Math.sin(t * 55) * .9).toFixed(2) + 'px,0)'; // ~1px rumble
+      var deg = (x - L.start) / (Math.PI * L.wheelD) * 360; // rolls exactly the distance travelled
+      wheels.forEach(function (w) { w.style.transform = 'translate(-50%,-50%) rotate(' + deg.toFixed(1) + 'deg)'; });
+      cards.forEach(function (c, i) { if (nose >= L.stops[i]) c.classList.add('on'); });
+    }
+    function frame(now) {
+      var t = (now - t0) / 1000;
+      if (!L) return;
+      render(Math.min(t, RUN));
+      if (t < RUN) raf = requestAnimationFrame(frame);
+      else cards.forEach(function (c) { c.classList.add('on'); });
+    }
+    function play() {
+      section.classList.add('play');
+      if (!pcMq.matches) { cards.forEach(function (c, i) { setTimeout(function () { c.classList.add('on'); }, i * STEP_MO * 1000); }); return; }
+      t0 = performance.now(); raf = requestAnimationFrame(frame);
+    }
+    layout(); if (L) render(0);
+    window.addEventListener('resize', layout); window.addEventListener('chada:scale', layout);
+    if (document.fonts) document.fonts.ready.then(layout);
+
+    if (reduce || !('IntersectionObserver' in window)) {
+      section.classList.add('play'); cards.forEach(function (c) { c.classList.add('on'); });
+      truck.style.visibility = 'hidden';
+      return;
+    }
+    var pio = new IntersectionObserver(function (entries) {
+      if (entries[0].intersectionRatio >= .5) { pio.disconnect(); play(); }
+    }, { threshold: .5 });
+    pio.observe(section);
+  })();
+
+  /* ===== 8. FAQ: open sets `open` first so the answer can grow; close shrinks it, then drops `open` ===== */
+  document.querySelectorAll('.faq details').forEach(function (d) {
+    var ans = d.querySelector('.faq-a');
+    d.querySelector('summary').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (d.classList.contains('is-open')) {
+        d.classList.remove('is-open');
+        var done = function () { if (!d.classList.contains('is-open')) d.open = false; };
+        if (reduce) done(); else { ans.addEventListener('transitionend', done, { once: true }); setTimeout(done, 400); }
+      } else {
+        d.open = true;
+        requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add('is-open'); }); });
+      }
+    });
+  });
 
   /* ===== 6. Reviews: two copies after the originals make the drift seamless; copies are hidden from screen readers and focus ===== */
   if (!reduce) {
@@ -412,7 +497,7 @@
       world.style.setProperty('--shade', clamp((cur - 0.74) / 0.10).toFixed(3)); // darken the sky behind the copy
       var bt = clamp((cur - 0.6) / 0.14), bounce = bt < 1 ? Math.sin(bt * Math.PI) * (1 - bt) : 0;
       box.style.transform = 'translateY(' + ((1 - ease(bt)) * -26 - bounce * 10).toFixed(1) + 'px) scale(' + (0.94 + 0.06 * ease(bt)).toFixed(3) + ')';
-      copy.style.top = (lidY - 28).toFixed(1) + 'px'; // copy's bottom edge sits 28px above the lid
+      copy.style.top = (lidY - (vw > 900 ? 32 * screenScale() : 28)).toFixed(1) + 'px'; // copy's bottom edge sits 32*s (mobile 28px) above the lid
       copy.classList.toggle('on', cur > 0.78);
       requestAnimationFrame(frame);
     }
@@ -433,12 +518,12 @@
     });
   })();
 
-  /* ===== 2. Morning: messages arrive one by one, the bell rings for suppliers ===== */
+  /* ===== 2. Morning: once half the section is on screen, messages arrive one by one on a timer; the bell rings for suppliers ===== */
   (function morning() {
-    var track = document.getElementById('morningTrack'), chat = document.getElementById('mChat'), phone = document.getElementById('mPhone');
+    var section = document.getElementById('morning'), chat = document.getElementById('mChat'), phone = document.getElementById('mPhone');
     var clock = document.getElementById('mClock'), bell = document.getElementById('mBell');
     var msgs = [].slice.call(chat.querySelectorAll('.cm')), typings = [];
-    var START = 0.06, STEP = 0.14, TYPE = 0.06;
+    var LEAD = .3, TYPE = .7, GAP = .9, REPLY = .6; // seconds: before the first, typing dots, then the pause before a supplier / the owner's reply
 
     msgs.forEach(function (m, i) {
       var av = m.querySelector('.av');
@@ -452,28 +537,27 @@
     phone.addEventListener('animationend', function (e) { if (e.target === phone) phone.classList.remove('buzz'); });
     bell.addEventListener('animationend', function (e) { if (e.animationName === 'bellRing') bell.classList.remove('ring'); });
 
-    var shown = -1, count = 0;
-    function update() {
-      var p = reduce ? 1 : progressOf(track), n = 0, typing = -1;
-      msgs.forEach(function (m, i) {
-        var at = START + i * STEP;
-        if (p >= at) n = i + 1;
-        else if (typings[i] && p >= at - TYPE && typing < 0 && n === i) typing = i;
-      });
+    function show(n, typing, animate) { // first n messages visible, typing dots on message `typing` (or none)
       typings.forEach(function (t, i) { if (t) t.classList.toggle('on', i === typing); });
-      if (n === shown) return;
-      var c = 0;
-      msgs.forEach(function (m, i) { m.classList.toggle('on', i < n); if (i < n && m.classList.contains('in')) c++; });
-      var animate = shown >= 0 && !reduce;
-      if (animate && n > shown && msgs[n - 1].classList.contains('in')) restart(phone, 'buzz');
-      if (animate && c > count) restart(bell, 'ring');
-      count = c;
+      msgs.forEach(function (m, i) { m.classList.toggle('on', i < n); });
       clock.textContent = n ? msgs[n - 1].dataset.t : '07:00';
-      shown = n;
+      if (animate && n && msgs[n - 1].classList.contains('in')) { restart(phone, 'buzz'); restart(bell, 'ring'); }
     }
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    update();
+    if (reduce || !('IntersectionObserver' in window)) { show(msgs.length, -1, false); return; }
+    show(0, -1, false);
+
+    function play() {
+      var t = LEAD;
+      msgs.forEach(function (m, i) {
+        if (typings[i]) { setTimeout(function () { show(i, i, false); }, t * 1000); t += TYPE; }
+        setTimeout(function () { show(i + 1, -1, true); }, t * 1000);
+        if (msgs[i + 1]) t += msgs[i + 1].classList.contains('me') ? REPLY : GAP;
+      });
+    }
+    var mio = new IntersectionObserver(function (entries) {
+      if (entries[0].intersectionRatio >= .5) { mio.disconnect(); play(); } // once; the last state stays
+    }, { threshold: .5 });
+    mio.observe(section);
   })();
 
   /* ===== 3. Truck cards: play once on entering view; hovering a card (mouse only) plays it again ===== */
